@@ -1,0 +1,8 @@
+<!-- app/views/auctions/show.html.erb -->
+<h1>現在の入札金額: <span id="current_bid"><%= @auction.current_bid %></span></h1>
+
+<%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
+  <%= form.number_field :current_bid, min: @auction.current_bid + 1, step: 100 %>
+  <%= form.submit "入札" %>
+<% end %>
+
