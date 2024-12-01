@@ -1,5 +1,5 @@
 <!-- app/views/auctions/show.html.erb -->
-<h1>Current Bid: <span id="current_bid"><%= number_to_currency(@auction.current_bid, unit: "JPY", format: "%u %n" ) %></span></h1>
+<h1>Current Bid: JPY <span id="current_bid"><%= @auction.current_bid %></span></h1>
 
 <%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
   <%= form.number_field :current_bid, min: @auction.current_bid + 1 %>
