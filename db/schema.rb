@@ -15,7 +15,7 @@ ActiveRecord::Schema[8.0].define(version: 2024_11_30_181343) do
   enable_extension "pg_catalog.plpgsql"
 
   create_table "auctions", force: :cascade do |t|
-    t.decimal "current_bid"
+    t.bigint "current_bid", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
