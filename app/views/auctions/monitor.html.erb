@@ -1,0 +1,161 @@
+<!-- app/views/auctions/monitor.html.erb -->
+<div class="monitor-view">
+  <div class="monitor-header">
+    <h1>オークション モニター画面</h1>
+    <div class="timestamp">更新時刻: <span id="last-update"><%= Time.current.strftime("%H:%M:%S") %></span></div>
+  </div>
+  
+  <div class="current-bid-display">
+    <div class="bid-amount">
+      <span class="currency">JPY</span>
+      <span id="current_bid" class="amount"><%= @auction.current_bid %></span>
+    </div>
+    <div class="bid-label">現在の入札金額</div>
+  </div>
+
+  <div class="item-display">
+    <div class="item-image">
+      <%= image_tag "sample.png", alt: "オークション商品" %>
+    </div>
+    <div class="item-info">
+      <h3>オークション商品</h3>
+      <p>リアルタイムで入札状況を確認できます</p>
+    </div>
+  </div>
+
+  <div class="monitor-footer">
+    <p>参加者用画面: <%= link_to "参加者画面", participant_auction_path(@auction), target: "_blank" %></p>
+  </div>
+</div>
+
+<style>
+.monitor-view {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.monitor-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.monitor-header h1 {
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+  font-size: 2.5em;
+}
+
+.timestamp {
+  color: #7f8c8d;
+  font-size: 1.2em;
+}
+
+.current-bid-display {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  margin-bottom: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.bid-amount {
+  margin-bottom: 10px;
+}
+
+.currency {
+  font-size: 2em;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.amount {
+  font-size: 4em;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.bid-label {
+  font-size: 1.5em;
+  opacity: 0.9;
+}
+
+.item-display {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.item-image {
+  flex: 0 0 300px;
+  margin-right: 30px;
+}
+
+.item-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info h3 {
+  color: #2c3e50;
+  margin: 0 0 15px 0;
+  font-size: 1.8em;
+}
+
+.item-info p {
+  color: #7f8c8d;
+  font-size: 1.2em;
+  margin: 0;
+}
+
+.monitor-footer {
+  text-align: center;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.monitor-footer a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.monitor-footer a:hover {
+  text-decoration: underline;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .item-display {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .item-image {
+    flex: none;
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+  
+  .amount {
+    font-size: 3em;
+  }
+}
+</style> 

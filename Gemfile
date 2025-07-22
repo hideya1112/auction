@@ -28,6 +28,12 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
+# # active admin
+# gem 'activeadmin'
+# gem 'devise'
+# gem 'sprockets-rails'
+# gem 'tilt'
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 

@@ -1,6 +1,6 @@
-<!-- app/views/auctions/show.html.erb -->
-<div class="main-view">
-  <h1>オークションシステム</h1>
+<!-- app/views/auctions/participant.html.erb -->
+<div class="participant-view">
+  <h1>オークション参加者画面</h1>
   
   <div class="current-bid-display">
     <h2>現在の入札金額: JPY <span id="current_bid"><%= @auction.current_bid %></span></h2>
@@ -21,29 +21,17 @@
     <% end %>
   </div>
 
-  <div class="navigation-links">
-    <div class="nav-section">
-      <h3>画面選択</h3>
-      <div class="nav-buttons">
-        <%= link_to "参加者用画面", participant_auction_path(@auction), class: "nav-button participant" %>
-        <%= link_to "モニター用画面", monitor_auction_path(@auction), class: "nav-button monitor" %>
-      </div>
-    </div>
+  <div class="navigation">
+    <p><%= link_to "モニター画面を見る", monitor_auction_path(@auction), target: "_blank" %></p>
   </div>
 </div>
 
 <style>
-.main-view {
+.participant-view {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   font-family: Arial, sans-serif;
-}
-
-.main-view h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 30px;
 }
 
 .current-bid-display {
@@ -113,51 +101,17 @@
   background: #2980b9;
 }
 
-.navigation-links {
-  margin-top: 40px;
+.navigation {
   text-align: center;
+  margin-top: 20px;
 }
 
-.nav-section h3 {
-  color: #2c3e50;
-  margin-bottom: 20px;
-}
-
-.nav-buttons {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.nav-button {
-  display: inline-block;
-  padding: 15px 30px;
+.navigation a {
+  color: #7f8c8d;
   text-decoration: none;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: all 0.3s;
-  min-width: 200px;
 }
 
-.nav-button.participant {
-  background: #27ae60;
-  color: white;
+.navigation a:hover {
+  text-decoration: underline;
 }
-
-.nav-button.participant:hover {
-  background: #229954;
-  transform: translateY(-2px);
-}
-
-.nav-button.monitor {
-  background: #e74c3c;
-  color: white;
-}
-
-.nav-button.monitor:hover {
-  background: #c0392b;
-  transform: translateY(-2px);
-}
-</style>
-
+</style> 

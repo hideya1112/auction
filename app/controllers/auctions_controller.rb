@@ -2,6 +2,16 @@ class AuctionsController < ApplicationController
     def show
       @auction = Auction.first
     end
+
+    # 参加者用画面
+    def participant
+      @auction = Auction.find(params[:id])
+    end
+
+    # モニター用画面
+    def monitor
+      @auction = Auction.find(params[:id])
+    end
   
     def update
       @auction = Auction.find(params[:id])

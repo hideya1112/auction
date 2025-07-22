@@ -6,6 +6,12 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   resources :auctions, only: [:show, :update]
+  
+  # 参加者用画面
+  get 'auctions/:id/participant', to: 'auctions#participant', as: :participant_auction
+  # モニター用画面
+  get 'auctions/:id/monitor', to: 'auctions#monitor', as: :monitor_auction
+  
   root 'auctions#show'  # オプションで、ルートパスも設定
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
