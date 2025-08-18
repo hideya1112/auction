@@ -1,0 +1,170 @@
+<!-- app/views/users/login.html.erb -->
+<div class="user-login">
+  <div class="login-container">
+    <h1>オークション参加者ログイン</h1>
+    
+    <% if flash[:alert] %>
+      <div class="alert alert-danger">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+    
+    <div class="login-info">
+      <p><strong>利用可能なユーザーID:</strong></p>
+      <div class="user-list">
+        <div class="user-item">HDY111 - 田中太郎</div>
+        <div class="user-item">HDY222 - 佐藤花子</div>
+        <div class="user-item">HDY333 - 鈴木一郎</div>
+        <div class="user-item">HDY444 - 高橋美咲</div>
+        <div class="user-item">HDY555 - 渡辺健太</div>
+      </div>
+    </div>
+    
+    <%= form_with url: user_authenticate_path, method: :post, local: true do |form| %>
+      <div class="form-group">
+        <label for="user_id">ユーザーID</label>
+        <%= form.text_field :user_id, id: 'user_id', class: 'form-control', 
+            placeholder: '例: HDY111', required: true, autocomplete: 'off' %>
+      </div>
+      
+      <%= form.submit 'ログイン', class: 'btn btn-primary' %>
+    <% end %>
+    
+    <div class="login-footer">
+      <p>オークションに参加するには、上記のユーザーIDのいずれかを入力してください。</p>
+      <p><%= link_to 'モニター画面を見る', monitor_auction_path(Auction.active.first), class: 'monitor-link' %></p>
+    </div>
+  </div>
+</div>
+
+<style>
+.user-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.login-container {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 500px;
+}
+
+.login-container h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+.login-info {
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.login-info p {
+  margin: 0 0 15px 0;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.user-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.user-item {
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  font-family: monospace;
+  font-size: 14px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+  text-transform: uppercase;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5a6fd8;
+}
+
+.alert {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.login-footer {
+  margin-top: 25px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.login-footer p {
+  margin: 8px 0;
+}
+
+.monitor-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.monitor-link:hover {
+  text-decoration: underline;
+}
+</style>

@@ -1,25 +1,44 @@
 <!-- app/views/auctions/participant.html.erb -->
 <div class="participant-view">
-  <h1>オークション参加者画面</h1>
+  <div class="user-header">
+    <h1>オークション参加者画面</h1>
+    <% if session[:user_name] %>
+      <div class="user-info">
+        <span class="welcome">ようこそ、<%= session[:user_name] %>さん！</span>
+        <%= link_to 'ログアウト', user_logout_get_path, class: 'logout-btn' %>
+      </div>
+    <% else %>
+      <div class="login-required">
+        <%= link_to 'ログインが必要です', user_login_path, class: 'login-link' %>
+      </div>
+    <% end %>
+  </div>
   
   <div class="current-bid-display">
-    <h2>現在の入札金額: JPY <span id="current_bid"><%= @auction.current_bid %></span></h2>
+    <h2>現在の入札金額: <%= format_currency_with_symbol(@auction.current_bid) %></h2>
+    <p class="bidder-info">現在入札者: <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名</p>
   </div>
 
   <div class="item-image">
     <%= image_tag "sample.png", alt: "オークション商品" %>
   </div>
 
-  <div class="bid-form">
-    <h3>入札フォーム</h3>
-    <%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
-      <div class="form-group">
-        <label for="auction_current_bid">入札金額 (最低: JPY <span id="min_bid"><%= @auction.current_bid + 1 %></span>)</label>
-        <%= form.number_field :current_bid, min: @auction.current_bid + 1, step: 1, class: "bid-input", id: "bid_input" %>
-      </div>
-      <%= form.submit "入札する", class: "bid-button" %>
-    <% end %>
-  </div>
+  <% if session[:user_id] %>
+    <div class="bid-form">
+      <h3>入札フォーム</h3>
+      <%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
+        <div class="form-group">
+          <label for="auction_current_bid">入札金額</label>
+          <%= form.number_field :current_bid, min: @auction.current_bid, step: 1, class: "bid-input", id: "bid_input" %>
+        </div>
+        <%= form.submit "入札する", class: "bid-button" %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="login-required-message">
+      <p>入札するには<%= link_to 'ログイン', user_login_path %>が必要です</p>
+    </div>
+  <% end %>
 
   <div class="navigation">
     <p><%= link_to "モニター画面を見る", monitor_auction_path(@auction), target: "_blank" %></p>
@@ -32,6 +51,60 @@
   margin: 0 auto;
   padding: 20px;
   font-family: Arial, sans-serif;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.user-header h1 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.welcome {
+  margin-right: 15px;
+  font-size: 18px;
+  color: #3498db;
+}
+
+.logout-btn {
+  background-color: #e74c3c;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
+}
+
+.login-required {
+  color: #e74c3c;
+  font-size: 16px;
+}
+
+.login-link {
+  color: #3498db;
+  text-decoration: none;
+}
+
+.login-link:hover {
+  text-decoration: underline;
 }
 
 .current-bid-display {
@@ -112,6 +185,25 @@
 }
 
 .navigation a:hover {
+  text-decoration: underline;
+}
+
+.login-required-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.login-required-message a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-required-message a:hover {
   text-decoration: underline;
 }
 </style> 

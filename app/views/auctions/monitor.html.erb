@@ -8,9 +8,10 @@
   <div class="current-bid-display">
     <div class="bid-amount">
       <span class="currency">JPY</span>
-      <span id="current_bid" class="amount"><%= @auction.current_bid %></span>
+      <span id="current_bid" class="amount"><%= format_currency(@auction.current_bid) %></span>
     </div>
     <div class="bid-label">現在の入札金額</div>
+    <div class="bidder-info">現在入札者: <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名</div>
   </div>
 
   <div class="item-display">
@@ -96,7 +97,7 @@
 }
 
 .item-image {
-  flex: 0 0 300px;
+  flex: 0 0 500px;
   margin-right: 30px;
 }
 
@@ -139,6 +140,19 @@
 
 .monitor-footer a:hover {
   text-decoration: underline;
+}
+
+.bidder-info {
+  margin-top: 15px;
+  font-size: 1.3em;
+  opacity: 0.9;
+}
+
+.bidder-count {
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  font-size: 1.2em;
 }
 
 /* レスポンシブデザイン */
