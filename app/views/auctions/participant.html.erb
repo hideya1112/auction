@@ -15,7 +15,7 @@
     <%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
       <div class="form-group">
         <label for="auction_current_bid">入札金額 (最低: JPY <%= @auction.current_bid + 1 %>)</label>
-        <%= form.number_field :current_bid, min: @auction.current_bid + 1, class: "bid-input" %>
+        <%= form.number_field :current_bid, min: @auction.current_bid + 1, step: 1, class: "bid-input" %>
       </div>
       <%= form.submit "入札する", class: "bid-button" %>
     <% end %>
