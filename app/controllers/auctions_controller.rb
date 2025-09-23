@@ -5,6 +5,12 @@ class AuctionsController < ApplicationController
 
     # 参加者用画面
     def participant
+      # ログインしていない場合はログイン画面にリダイレクト
+      unless session[:user_id]
+        redirect_to user_login_path, alert: '参加者画面にアクセスするにはログインが必要です'
+        return
+      end
+      
       @auction = Auction.find(params[:id])
     end
 
@@ -14,6 +20,12 @@ class AuctionsController < ApplicationController
     end
   
     def update
+      # ログインしていない場合はログイン画面にリダイレクト
+      unless session[:user_id]
+        redirect_to user_login_path, alert: '入札するにはログインが必要です'
+        return
+      end
+      
       @auction = Auction.find(params[:id])
 
       if params[:auction][:current_bid].to_f >= @auction.current_bid

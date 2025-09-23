@@ -1,6 +1,9 @@
 class UsersController < ApplicationController
   def login
-    # ログイン画面を表示
+    # 既にログインしている場合は参加者画面にリダイレクト
+    if session[:user_id]
+      redirect_to participant_auction_path(Auction.active.first), notice: "既にログインしています"
+    end
   end
   
   def authenticate

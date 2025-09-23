@@ -1,6 +1,9 @@
 class Admin::SessionsController < ApplicationController
   def new
-    # ログイン画面を表示
+    # 既に管理者ログインしている場合はダッシュボードにリダイレクト
+    if session[:admin_logged_in]
+      redirect_to admin_path, notice: "既に管理者としてログインしています"
+    end
   end
   
   def create
