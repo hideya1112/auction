@@ -32,15 +32,30 @@ class AuctionsController < ApplicationController
         # 現在ログインしているユーザーのIDを設定
         Thread.current[:current_user_id] = session[:user_id]
         
-        @auction.update(current_bid: params[:auction][:current_bid])
-        
-        # スレッドローカル変数をクリア
-        Thread.current[:current_user_id] = nil
-        
-        # AJAXリクエストの場合はJSONレスポンスを返す
-        respond_to do |format|
-          format.html { redirect_to participant_auction_path(@auction), notice: '入札が完了しました' }
-          format.json { render json: { success: true, current_bid: @auction.current_bid, bidder_count: @auction.current_bidders } }
+        if @auction.update(current_bid: params[:auction][:current_bid])
+          # スレッドローカル変数をクリア
+          Thread.current[:current_user_id] = nil
+          
+          # 手動でActionCableのブロードキャストを実行
+          ActionCable.server.broadcast("auction_#{@auction.id}_channel", { 
+            current_bid: @auction.current_bid,
+            status: @auction.status,
+            bidder_count: @auction.current_bidders
+          })
+          
+          # AJAXリクエストの場合はJSONレスポンスを返す
+          respond_to do |format|
+            format.html { redirect_to participant_auction_path(@auction), notice: '入札が完了しました' }
+            format.json { render json: { success: true, current_bid: @auction.current_bid, bidder_count: @auction.current_bidders } }
+          end
+        else
+          # スレッドローカル変数をクリア
+          Thread.current[:current_user_id] = nil
+          
+          respond_to do |format|
+            format.html { render :participant, alert: '入札の更新に失敗しました' }
+            format.json { render json: { success: false, error: '入札の更新に失敗しました' } }
+          end
         end
       else
         flash[:alert] = "入札金額は現在の金額以上でなければなりません"

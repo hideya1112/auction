@@ -9,47 +9,146 @@ try {
   console.log('効果音の読み込みに失敗しました:', e);
 }
 
-// フォーム送信時の処理
+// ATM風キーパッドの処理
 document.addEventListener('DOMContentLoaded', function() {
-  const bidForm = document.querySelector('form[data-turbo-method="patch"]');
-  if (bidForm) {
-    bidForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const formData = new FormData(this);
-      const auctionId = this.action.split('/').pop();
-      
-      fetch(this.action, {
-        method: 'PATCH',
-        body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // 入札成功時の処理（ActionCableで更新されるので特別な処理は不要）
-          console.log('入札が完了しました');
-        } else {
-          alert(data.error || '入札に失敗しました');
-        }
-      })
-      .catch(error => {
-        console.error('入札エラー:', error);
-        alert('入札に失敗しました');
-      });
-    });
+  let currentAmount = 0;
+  
+  // 最低入札価格を取得する関数
+  function getMinBid() {
+    return parseInt(document.getElementById('bid_input')?.min || 0);
   }
+  
+  // 金額表示の更新
+  function updateAmountDisplay() {
+    const display = document.getElementById('amount_display');
+    if (display) {
+      display.textContent = currentAmount.toLocaleString();
+    }
+    
+    // 入札ボタンの有効/無効を制御
+    const submitBtn = document.getElementById('submit_btn');
+    if (submitBtn) {
+      submitBtn.disabled = currentAmount < getMinBid();
+    }
+  }
+  
+  // グローバル関数として定義（ActionCableから呼び出し可能にする）
+  window.updateAmountDisplay = updateAmountDisplay;
+  
+  // 数字キーの処理
+  document.querySelectorAll('.keypad-btn[data-number]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const number = parseInt(this.dataset.number);
+      const newAmount = currentAmount * 10 + number;
+      
+      // 最大桁数制限（10桁）
+      if (newAmount.toString().length <= 10) {
+        currentAmount = newAmount;
+        updateAmountDisplay();
+      }
+    });
+  });
+  
+  // クリアボタン
+  document.getElementById('clear_btn')?.addEventListener('click', function() {
+    currentAmount = 0;
+    updateAmountDisplay();
+  });
+  
+  // バックスペースボタン
+  document.getElementById('backspace_btn')?.addEventListener('click', function() {
+    currentAmount = Math.floor(currentAmount / 10);
+    updateAmountDisplay();
+  });
+  
+  // キャンセルボタン
+  document.getElementById('cancel_btn')?.addEventListener('click', function() {
+    currentAmount = 0;
+    updateAmountDisplay();
+  });
+  
+  // 入札ボタン
+  document.getElementById('submit_btn')?.addEventListener('click', function() {
+    if (currentAmount >= getMinBid()) {
+      console.log('入札開始:', currentAmount, '最低価格:', getMinBid());
+      
+      // 隠しフィールドに値を設定
+      const bidInput = document.getElementById('bid_input');
+      if (bidInput) {
+        bidInput.value = currentAmount;
+        console.log('隠しフィールドに設定:', bidInput.value);
+        
+        // フォームを送信
+        const bidForm = document.getElementById('bid_form');
+        if (bidForm) {
+          const formData = new FormData(bidForm);
+          console.log('送信データ:', Object.fromEntries(formData));
+          
+          fetch(bidForm.action, {
+            method: 'PATCH',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          })
+          .then(response => {
+            console.log('レスポンス受信:', response.status);
+            return response.json();
+          })
+          .then(data => {
+            console.log('レスポンスデータ:', data);
+            if (data.success) {
+              // 入札成功時の処理
+              currentAmount = 0;
+              updateAmountDisplay();
+              console.log('入札が完了しました');
+            } else {
+              alert(data.error || '入札に失敗しました');
+            }
+          })
+          .catch(error => {
+            console.error('入札エラー:', error);
+            alert('入札に失敗しました');
+          });
+        }
+      }
+    } else {
+      console.log('入札金額が不足:', currentAmount, '最低価格:', getMinBid());
+    }
+  });
+  
+  // 初期表示の更新
+  updateAmountDisplay();
 });
 
-consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
+const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
+  connected() {
+    console.log('ActionCable接続成功');
+  },
+  
+  disconnected() {
+    console.log('ActionCable接続切断');
+  },
+  
+  rejected() {
+    console.log('ActionCable接続拒否');
+  },
+  
   received(data) {
+    console.log('ActionCable受信:', data);
+    
     // 受け取ったデータを使ってUIを更新
     const currentBidElement = document.getElementById("current_bid");
     if (currentBidElement) {
-      currentBidElement.innerText = data.current_bid.toLocaleString();
+      // 参加者画面では通貨記号付きで表示
+      if (document.querySelector('.participant-view')) {
+        currentBidElement.innerText = `JPY ${data.current_bid.toLocaleString()}`;
+      } else {
+        // モニター画面では数値のみ
+        currentBidElement.innerText = data.current_bid.toLocaleString();
+      }
+      console.log('現在価格更新:', data.current_bid);
     }
     
     // 入札者数の更新
@@ -73,7 +172,20 @@ consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
     if (bidInputElement) {
       const newMinBid = parseInt(data.current_bid) + 1;
       bidInputElement.min = newMinBid;
-      bidInputElement.placeholder = `最低: ${newMinBid.toLocaleString()}円`;
+      
+      // ATM風キーパッドの最低入札価格も更新
+      const minBid = newMinBid;
+      const submitBtn = document.getElementById('submit_btn');
+      if (submitBtn) {
+        // 現在の金額を取得してボタンの有効/無効を制御
+        const currentAmount = parseInt(document.getElementById('amount_display')?.textContent?.replace(/,/g, '') || 0);
+        submitBtn.disabled = currentAmount < minBid;
+        
+        // グローバル変数も更新（他の関数で使用される可能性があるため）
+        if (window.updateAmountDisplay) {
+          window.updateAmountDisplay();
+        }
+      }
     }
     
     // 効果音の再生（モニター画面でのみ）
