@@ -26,7 +26,7 @@
   <% if session[:user_id] %>
     <div class="bid-form">
       <h3>入札フォーム</h3>
-      <%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
+      <%= form_with model: @auction, url: auction_path(@auction), method: :patch, data: { turbo_method: :patch } do |form| %>
         <div class="form-group">
           <label for="auction_current_bid">入札金額</label>
           <%= form.number_field :current_bid, min: @auction.current_bid, step: 1, class: "bid-input", id: "bid_input" %>

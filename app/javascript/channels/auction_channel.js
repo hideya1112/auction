@@ -9,6 +9,41 @@ try {
   console.log('効果音の読み込みに失敗しました:', e);
 }
 
+// フォーム送信時の処理
+document.addEventListener('DOMContentLoaded', function() {
+  const bidForm = document.querySelector('form[data-turbo-method="patch"]');
+  if (bidForm) {
+    bidForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const auctionId = this.action.split('/').pop();
+      
+      fetch(this.action, {
+        method: 'PATCH',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // 入札成功時の処理（ActionCableで更新されるので特別な処理は不要）
+          console.log('入札が完了しました');
+        } else {
+          alert(data.error || '入札に失敗しました');
+        }
+      })
+      .catch(error => {
+        console.error('入札エラー:', error);
+        alert('入札に失敗しました');
+      });
+    });
+  }
+});
+
 consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
   received(data) {
     // 受け取ったデータを使ってUIを更新
@@ -24,15 +59,6 @@ consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
     } else if (bidderCountElement) {
       // データがない場合は1を表示（最低1人は入札している）
       bidderCountElement.innerText = "1";
-    }
-    
-    // 入札が発生した場合、入札者数を増加
-    if (bidderCountElement && data.current_bid) {
-      const currentCount = parseInt(bidderCountElement.innerText) || 1;
-      // 新しい入札が発生した場合、入札者数を1増やす
-      if (data.current_bid > (parseInt(document.getElementById("current_bid")?.innerText.replace(/,/g, '')) || 0)) {
-        bidderCountElement.innerText = currentCount + 1;
-      }
     }
     
     // 最低入札価格の更新

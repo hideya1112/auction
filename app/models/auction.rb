@@ -29,11 +29,13 @@ class Auction < ApplicationRecord
   end
   
   def bidder_count
-    bid_logs.select(:user_id).distinct.count
+    # 現在の入札金額に到達するまでの入札に参加したユーザー数
+    bid_logs.where('bid_amount <= ?', current_bid).select(:user_id).distinct.count
   end
   
   def current_bidders
-    bid_logs.where(bid_amount: current_bid).select(:user_id).distinct.count
+    # 現在の入札金額に到達するまでの入札に参加したユーザー数（bidder_countと同じ）
+    bid_logs.where('bid_amount <= ?', current_bid).select(:user_id).distinct.count
   end
   
   private
