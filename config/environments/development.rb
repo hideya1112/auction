@@ -26,7 +26,8 @@ Rails.application.configure do
   end
 
   config.hosts = [
-    "localhost"
+    "localhost",
+    "1c600921d1d6.ngrok-free.app"
   ]
 
   # Change to :null_store to avoid any caching.

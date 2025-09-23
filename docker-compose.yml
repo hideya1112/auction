@@ -11,12 +11,14 @@ services:
       - db_data:/var/lib/postgresql/data
   web:
     build: .
-    command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    command: bundle exec rails server -p 3000 -b '0.0.0.0'
     volumes:
       - .:/rails
     ports:
       - "3000:3000"
     depends_on:
       - db
+    environment:
+      - RAILS_ENV=development
 volumes:
   db_data: {}

@@ -46,4 +46,16 @@ if first_item
     a.current_bid = a.item.starting_price
     a.status = 'active'
   end
+  
+  # 初期の入札ログを作成（開始価格での入札）
+  if auction.bid_logs.empty?
+    first_user = User.first
+    if first_user
+      auction.bid_logs.create!(
+        user_id: first_user.id,
+        bid_amount: auction.current_bid,
+        bid_time: Time.current
+      )
+    end
+  end
 end

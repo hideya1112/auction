@@ -52,7 +52,16 @@ class Auction < ApplicationRecord
   end
   
   def create_bid_log
-    # 入札ログの作成は別途実装
-    # ここでは最低限の処理のみ
+    # 現在ログインしているユーザーのIDを取得
+    user_id = Thread.current[:current_user_id]
+    
+    if user_id
+      # 入札ログを作成
+      bid_logs.create!(
+        user_id: user_id,
+        bid_amount: current_bid,
+        bid_time: Time.current
+      )
+    end
   end
 end

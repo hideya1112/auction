@@ -24,7 +24,7 @@ default: &default
 development:
   <<: *default
   database: auction_development
-  host: db
+  host: localhost
   username: postgres
   password: postgres
 
@@ -61,7 +61,7 @@ development:
 test:
   <<: *default
   database: auction_test
-  host: db
+  host: localhost
   username: postgres
   password: postgres
 
