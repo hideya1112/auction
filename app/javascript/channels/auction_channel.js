@@ -10,30 +10,40 @@ try {
 }
 
 // ATM風キーパッドの処理
-document.addEventListener('DOMContentLoaded', function() {
-  let currentAmount = 0;
-  
-  // 最低入札価格を取得する関数
-  function getMinBid() {
-    return parseInt(document.getElementById('bid_input')?.min || 0);
+let currentAmount = 0;
+
+// 最低入札価格を取得する関数
+function getMinBid() {
+  return parseInt(document.getElementById('bid_input')?.min || 0);
+}
+
+// 金額表示の更新
+function updateAmountDisplay() {
+  const display = document.getElementById('amount_display');
+  if (display) {
+    display.textContent = currentAmount.toLocaleString();
   }
   
-  // 金額表示の更新
-  function updateAmountDisplay() {
-    const display = document.getElementById('amount_display');
-    if (display) {
-      display.textContent = currentAmount.toLocaleString();
-    }
-    
-    // 入札ボタンの有効/無効を制御
-    const submitBtn = document.getElementById('submit_btn');
-    if (submitBtn) {
-      submitBtn.disabled = currentAmount < getMinBid();
-    }
+  // 入札ボタンの有効/無効を制御
+  const submitBtn = document.getElementById('submit_btn');
+  if (submitBtn) {
+    submitBtn.disabled = currentAmount < getMinBid();
   }
+}
+
+// グローバル関数として定義（ActionCableから呼び出し可能にする）
+window.updateAmountDisplay = updateAmountDisplay;
+
+// キーパッドのイベントリスナーを設定する関数
+function setupKeypadListeners() {
+  // 既存のイベントリスナーを削除（重複を防ぐため）
+  document.querySelectorAll('.keypad-btn[data-number]').forEach(btn => {
+    btn.replaceWith(btn.cloneNode(true));
+  });
   
-  // グローバル関数として定義（ActionCableから呼び出し可能にする）
-  window.updateAmountDisplay = updateAmountDisplay;
+  document.getElementById('clear_btn')?.replaceWith(document.getElementById('clear_btn').cloneNode(true));
+  document.getElementById('backspace_btn')?.replaceWith(document.getElementById('backspace_btn').cloneNode(true));
+  document.getElementById('submit_btn')?.replaceWith(document.getElementById('submit_btn').cloneNode(true));
   
   // 数字キーの処理
   document.querySelectorAll('.keypad-btn[data-number]').forEach(btn => {
@@ -61,11 +71,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateAmountDisplay();
   });
   
-  // キャンセルボタン
-  document.getElementById('cancel_btn')?.addEventListener('click', function() {
-    currentAmount = 0;
-    updateAmountDisplay();
-  });
   
   // 入札ボタン
   document.getElementById('submit_btn')?.addEventListener('click', function() {
@@ -120,7 +125,13 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 初期表示の更新
   updateAmountDisplay();
-});
+}
+
+// ページ読み込み時とページ遷移時にイベントリスナーを設定
+document.addEventListener('DOMContentLoaded', setupKeypadListeners);
+
+// Turboのページ遷移時にもイベントリスナーを設定
+document.addEventListener('turbo:load', setupKeypadListeners);
 
 const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
   connected() {

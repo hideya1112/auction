@@ -1,24 +1,30 @@
 <!-- app/views/auctions/participant.html.erb -->
 <div class="participant-view">
-  <div class="user-header">
-    <h1>オークション参加者画面</h1>
+  <!-- コンパクトヘッダー -->
+  <div class="compact-header">
     <% if session[:user_name] %>
       <div class="user-info">
-        <span class="welcome">ようこそ、<%= session[:user_name] %>さん！</span>
+        <span class="welcome"><%= session[:user_name] %>さん</span>
         <%= link_to 'ログアウト', user_logout_get_path, class: 'logout-btn' %>
       </div>
     <% else %>
       <div class="login-required">
-        <%= link_to 'ログインが必要です', user_login_path, class: 'login-link' %>
+        <%= link_to 'ログイン', user_login_path, class: 'login-link' %>
       </div>
     <% end %>
   </div>
   
+  <!-- 現在価格表示 -->
   <div class="current-bid-display">
-    <h2>現在の入札金額: <span id="current_bid"><%= format_currency_with_symbol(@auction.current_bid) %></span></h2>
-    <p class="bidder-info">現在入札者: <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名</p>
+    <div class="bid-amount">
+      <span id="current_bid"><%= format_currency_with_symbol(@auction.current_bid) %></span>
+    </div>
+    <div class="bidder-info">
+      <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名
+    </div>
   </div>
 
+  <!-- 商品画像 -->
   <div class="item-image">
     <%= image_tag "sample.png", alt: "オークション商品" %>
   </div>
@@ -60,7 +66,6 @@
       
       <!-- アクションボタン -->
       <div class="action-buttons">
-        <button type="button" class="action-btn cancel-btn" id="cancel_btn">キャンセル</button>
         <button type="button" class="action-btn submit-btn" id="submit_btn">入札する</button>
       </div>
       
@@ -79,46 +84,47 @@
 
 <style>
 .participant-view {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: Arial, sans-serif;
+  max-width: 100%;
+  margin: 0;
+  padding: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f8f9fa;
+  min-height: 100vh;
 }
 
-.user-header {
+/* コンパクトヘッダー */
+.compact-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
-}
-
-.user-header h1 {
-  margin: 0;
-  color: #2c3e50;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .user-info {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .welcome {
-  margin-right: 15px;
-  font-size: 18px;
-  color: #3498db;
+  font-size: 14px;
+  color: #2c3e50;
+  font-weight: 500;
 }
 
 .logout-btn {
   background-color: #e74c3c;
   color: white;
-  padding: 8px 12px;
+  padding: 4px 8px;
   border: none;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 }
 
 .logout-btn:hover {
@@ -127,42 +133,61 @@
 
 .login-required {
   color: #e74c3c;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .login-link {
   color: #3498db;
   text-decoration: none;
+  font-weight: 500;
 }
 
 .login-link:hover {
   text-decoration: underline;
 }
 
+/* 現在価格表示 */
 .current-bid-display {
-  background: #f0f8ff;
-  padding: 20px;
+  background: white;
+  padding: 16px;
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.current-bid-display h2 {
+.bid-amount {
+  font-size: 24px;
+  font-weight: 700;
   color: #2c3e50;
-  margin: 0 0 15px 0;
+  margin-bottom: 4px;
 }
 
+.bidder-info {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.bidder-count {
+  font-weight: 600;
+  color: #e74c3c;
+}
+
+/* 商品画像 */
 .item-image {
   text-align: center;
-  margin: 20px 0;
+  margin-bottom: 12px;
 }
 
 .item-image img {
   max-width: 100%;
   height: auto;
+  max-height: 200px;
+  object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
+
 
 
 .navigation {
@@ -210,61 +235,59 @@
   font-size: 18px;
 }
 
-/* シックなATM風スタイル */
+/* コンパクトなATM風スタイル */
 .atm-style {
   background: #ffffff;
   border: 1px solid #e1e8ed;
-  border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   color: #2c3e50;
-  max-width: 480px;
-  margin: 0 auto;
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .atm-style h3 {
   text-align: center;
-  margin-bottom: 32px;
-  font-size: 20px;
+  margin-bottom: 16px;
+  font-size: 16px;
   color: #2c3e50;
   font-weight: 600;
-  letter-spacing: -0.5px;
 }
 
 .amount-display {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 32px;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
   text-align: center;
   position: relative;
 }
 
 .amount-label {
-  font-size: 14px;
+  font-size: 12px;
   color: #6c757d;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .amount-value {
-  font-size: 32px;
+  font-size: 20px;
   font-weight: 700;
   color: #2c3e50;
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
 }
 
 .currency-symbol {
   position: absolute;
-  right: 24px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 18px;
+  font-size: 14px;
   color: #6c757d;
   font-weight: 500;
 }
@@ -272,27 +295,27 @@
 .keypad {
   display: grid;
   grid-template-rows: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 32px;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .keypad-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .keypad-btn {
   background: #ffffff;
   border: 1px solid #e1e8ed;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #2c3e50;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
-  padding: 16px;
+  padding: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
-  min-height: 56px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,43 +359,30 @@
 }
 
 .action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  display: flex;
+  justify-content: center;
 }
 
 .action-btn {
   border: 1px solid;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
-  padding: 14px 24px;
+  padding: 10px 20px;
   cursor: pointer;
   transition: all 0.15s ease;
-  min-height: 48px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.cancel-btn {
-  background: #ffffff;
-  border-color: #e1e8ed;
-  color: #6c757d;
-}
-
-.cancel-btn:hover {
-  background: #f8f9fa;
-  border-color: #adb5bd;
-  color: #495057;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
 
 .submit-btn {
   background: #2c3e50;
   border-color: #2c3e50;
   color: #ffffff;
+  min-width: 160px;
 }
 
 .submit-btn:hover {
@@ -393,31 +403,159 @@
 
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
+  .participant-view {
+    padding: 16px;
+  }
+  
+  .compact-header {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+  
+  .welcome {
+    font-size: 13px;
+  }
+  
+  .logout-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .current-bid-display {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  .bid-amount {
+    font-size: 22px;
+  }
+  
+  .bidder-info {
+    font-size: 13px;
+  }
+  
+  .item-image {
+    margin-bottom: 12px;
+  }
+  
+  .item-image img {
+    max-height: 150px;
+  }
+  
   .atm-style {
-    padding: 24px;
-    margin: 16px;
-    border-radius: 8px;
-  }
-  
-  .amount-value {
-    font-size: 28px;
-  }
-  
-  .keypad-btn {
-    font-size: 16px;
-    padding: 14px;
-    min-height: 48px;
-  }
-  
-  .action-btn {
-    font-size: 14px;
-    padding: 12px 20px;
-    min-height: 44px;
+    padding: 16px;
   }
   
   .atm-style h3 {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+  
+  .amount-display {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .amount-label {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  
+  .amount-value {
     font-size: 18px;
-    margin-bottom: 24px;
+  }
+  
+  .currency-symbol {
+    font-size: 14px;
+    right: 12px;
+  }
+  
+  .keypad {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .keypad-row {
+    gap: 8px;
+  }
+  
+  .keypad-btn {
+    font-size: 15px;
+    padding: 12px;
+    min-height: 44px;
+  }
+  
+  .action-btn {
+    font-size: 13px;
+    padding: 10px 16px;
+    min-height: 40px;
+  }
+  
+  .submit-btn {
+    min-width: 140px;
+  }
+}
+
+/* iPhone SE専用の軽い調整 */
+@media (max-width: 375px) {
+  .participant-view {
+    padding: 12px;
+  }
+  
+  .compact-header {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+  }
+  
+  .current-bid-display {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .bid-amount {
+    font-size: 20px;
+  }
+  
+  .item-image img {
+    max-height: 120px;
+  }
+  
+  .atm-style {
+    padding: 12px;
+  }
+  
+  .amount-display {
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .amount-value {
+    font-size: 16px;
+  }
+  
+  .keypad {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  
+  .keypad-row {
+    gap: 6px;
+  }
+  
+  .keypad-btn {
+    font-size: 14px;
+    padding: 10px;
+    min-height: 40px;
+  }
+  
+  .action-btn {
+    font-size: 12px;
+    padding: 8px 14px;
+    min-height: 36px;
+  }
+  
+  .submit-btn {
+    min-width: 120px;
   }
 }
 </style> 

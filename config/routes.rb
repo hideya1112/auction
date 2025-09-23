@@ -36,7 +36,7 @@ Rails.application.routes.draw do
     get '/bid_logs', to: 'bid_logs#index'
   end
   
-  root 'auctions#show'  # オプションで、ルートパスも設定
+  root 'auctions#participant', defaults: { id: 1 }  # ルートパスは参加者用画面を表示
   # Render dynamic PWA files from app/views/pwa/* (remember to check manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
