@@ -35,7 +35,7 @@
 
   <!-- 商品画像 -->
   <div class="item-image">
-    <%= image_tag "sample.png", alt: "オークション商品" %>
+    <%= image_tag @auction.item.image_url, alt: @auction.item.name %>
   </div>
 
   <% if session[:user_id] %>
