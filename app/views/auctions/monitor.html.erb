@@ -12,6 +12,9 @@
     </div>
     <div class="bid-label">現在の入札金額</div>
     <div class="bidder-info">現在入札者: <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名</div>
+    <div id="same_bid_info" class="same-bid-info" style="display: none;">
+      <span class="same-bid-text">現在<span id="same_bid_count" class="same-bid-count">0</span>名が同じ金額で入札中</span>
+    </div>
   </div>
 
   <div class="item-display">
@@ -150,6 +153,24 @@
   color: #ffd700;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
   font-size: 1.2em;
+}
+
+.same-bid-info {
+  margin-top: 10px;
+  font-size: 1.1em;
+  opacity: 0.9;
+}
+
+.same-bid-text {
+  color: #ffeb3b;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.same-bid-count {
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  font-size: 1.3em;
 }
 
 /* レスポンシブデザイン */

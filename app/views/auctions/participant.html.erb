@@ -22,6 +22,9 @@
     <div class="bidder-info">
       <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名
     </div>
+    <div id="same_bid_info" class="same-bid-info" style="display: none;">
+      <span class="same-bid-text">現在<span id="same_bid_count" class="same-bid-count">0</span>名が同じ金額で入札中</span>
+    </div>
   </div>
 
   <!-- 商品画像 -->
@@ -30,7 +33,7 @@
   </div>
 
   <% if session[:user_id] %>
-    <div class="bid-form atm-style">
+    <div class="bid-form atm-style" data-user-bid-amounts="<%= @user_bid_amounts.to_json %>">
       <h3>入札フォーム</h3>
       
       <!-- 金額表示エリア -->
@@ -233,6 +236,22 @@
   font-weight: bold;
   color: #e74c3c;
   font-size: 18px;
+}
+
+.same-bid-info {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.same-bid-text {
+  color: #6c757d;
+}
+
+.same-bid-count {
+  font-weight: bold;
+  color: #e74c3c;
+  font-size: 16px;
 }
 
 /* コンパクトなATM風スタイル */

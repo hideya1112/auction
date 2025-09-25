@@ -11,10 +11,16 @@ try {
 
 // ATM風キーパッドの処理
 let currentAmount = 0;
+let userBidAmounts = []; // ユーザーが既に入札した金額のリスト
 
-// 最低入札価格を取得する関数
+// 最低入札価格を取得する関数（同じ金額でも入札可能）
 function getMinBid() {
   return parseInt(document.getElementById('bid_input')?.min || 0);
+}
+
+// 重複入札チェック関数
+function isDuplicateBid(amount) {
+  return userBidAmounts.includes(amount);
 }
 
 // 金額表示の更新
@@ -27,7 +33,18 @@ function updateAmountDisplay() {
   // 入札ボタンの有効/無効を制御
   const submitBtn = document.getElementById('submit_btn');
   if (submitBtn) {
-    submitBtn.disabled = currentAmount < getMinBid();
+    const isMinBidValid = currentAmount >= getMinBid();
+    const isNotDuplicate = !isDuplicateBid(currentAmount);
+    submitBtn.disabled = !isMinBidValid || !isNotDuplicate;
+    
+    // 重複入札の場合はボタンテキストを変更
+    if (isMinBidValid && !isNotDuplicate) {
+      submitBtn.textContent = '既に入札済み';
+      submitBtn.style.backgroundColor = '#e74c3c';
+    } else {
+      submitBtn.textContent = '入札する';
+      submitBtn.style.backgroundColor = '#2c3e50';
+    }
   }
 }
 
@@ -36,6 +53,17 @@ window.updateAmountDisplay = updateAmountDisplay;
 
 // キーパッドのイベントリスナーを設定する関数
 function setupKeypadListeners() {
+  // ユーザーの入札履歴を初期化
+  const bidForm = document.querySelector('.bid-form[data-user-bid-amounts]');
+  if (bidForm) {
+    try {
+      userBidAmounts = JSON.parse(bidForm.dataset.userBidAmounts || '[]');
+      console.log('ユーザーの入札履歴:', userBidAmounts);
+    } catch (e) {
+      console.error('入札履歴の解析に失敗:', e);
+      userBidAmounts = [];
+    }
+  }
   // 既存のイベントリスナーを削除（重複を防ぐため）
   document.querySelectorAll('.keypad-btn[data-number]').forEach(btn => {
     btn.replaceWith(btn.cloneNode(true));
@@ -74,7 +102,7 @@ function setupKeypadListeners() {
   
   // 入札ボタン
   document.getElementById('submit_btn')?.addEventListener('click', function() {
-    if (currentAmount >= getMinBid()) {
+    if (currentAmount >= getMinBid() && !isDuplicateBid(currentAmount)) { // 最低価格以上かつ重複でない場合のみ
       console.log('入札開始:', currentAmount, '最低価格:', getMinBid());
       
       // 隠しフィールドに値を設定
@@ -105,6 +133,8 @@ function setupKeypadListeners() {
             console.log('レスポンスデータ:', data);
             if (data.success) {
               // 入札成功時の処理
+              // ユーザーの入札履歴に追加
+              userBidAmounts.push(currentAmount);
               currentAmount = 0;
               updateAmountDisplay();
               console.log('入札が完了しました');
@@ -119,7 +149,12 @@ function setupKeypadListeners() {
         }
       }
     } else {
-      console.log('入札金額が不足:', currentAmount, '最低価格:', getMinBid());
+      if (currentAmount < getMinBid()) {
+        console.log('入札金額が不足:', currentAmount, '最低価格:', getMinBid());
+      } else if (isDuplicateBid(currentAmount)) {
+        console.log('同じ金額で既に入札済み:', currentAmount);
+        alert('同じ金額で既に入札済みです');
+      }
     }
   });
   
@@ -171,17 +206,33 @@ const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", 
       bidderCountElement.innerText = "1";
     }
     
+    // 複数入札者数の更新
+    const sameBidCountElement = document.getElementById("same_bid_count");
+    const sameBidInfoElement = document.getElementById("same_bid_info");
+    if (sameBidCountElement && data.same_bid_count !== undefined) {
+      sameBidCountElement.innerText = data.same_bid_count;
+      
+      // 2人以上の場合のみ表示
+      if (sameBidInfoElement) {
+        if (data.same_bid_count >= 2) {
+          sameBidInfoElement.style.display = "block";
+        } else {
+          sameBidInfoElement.style.display = "none";
+        }
+      }
+    }
+    
     // 最低入札価格の更新
     const minBidElement = document.getElementById("min_bid");
     if (minBidElement) {
-      const newMinBid = parseInt(data.current_bid) + 1;
+      const newMinBid = parseInt(data.current_bid); // 同じ金額でも入札可能
       minBidElement.innerText = `JPY ${newMinBid.toLocaleString()}`;
     }
     
     // 入力フィールドのmin属性の更新
     const bidInputElement = document.getElementById("bid_input");
     if (bidInputElement) {
-      const newMinBid = parseInt(data.current_bid) + 1;
+      const newMinBid = parseInt(data.current_bid); // 同じ金額でも入札可能
       bidInputElement.min = newMinBid;
       
       // ATM風キーパッドの最低入札価格も更新
