@@ -17,8 +17,8 @@ class AuctionsController < ApplicationController
       @user_bid_amounts = @auction.bid_logs.where(user_id: session[:user_id]).pluck(:bid_amount)
       # 未読通知数を取得
       @unread_notifications_count = User.find(session[:user_id]).unread_notifications_count
-      # オークションの状態をビューに渡す
-      @auction_ended = !@auction.active?
+      # オークションの状態をビューに渡す（hammeredの時のみ終了表示）
+      @auction_ended = @auction.hammered?
     end
 
     # モニター用画面
@@ -35,8 +35,8 @@ class AuctionsController < ApplicationController
       
       @auction = Auction.find(params[:id])
       
-      # オークションが終了している場合は入札を拒否
-      unless @auction.active?
+      # オークションがhammeredの場合は入札を拒否
+      if @auction.hammered?
         respond_to do |format|
           format.html { redirect_to participant_auction_path(@auction), alert: 'このオークションは終了しています' }
           format.json { render json: { success: false, error: 'このオークションは終了しています' } }

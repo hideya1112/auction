@@ -1,6 +1,6 @@
 class Admin::AuctionsController < Admin::ApplicationController
   include ApplicationHelper
-  before_action :set_auction, only: [:show, :edit, :update, :destroy, :hammer_price, :rollback_bid, :next_item]
+  before_action :set_auction, only: [:show, :edit, :update, :destroy, :hammer_price, :rollback_bid, :next_item, :switch]
 
   def index
     @auctions = Auction.includes(:item).order(created_at: :desc)
@@ -112,45 +112,138 @@ class Admin::AuctionsController < Admin::ApplicationController
     end
   end
 
-  # 次の商品への移行
+  # 次のオークションへの移行
   def next_item
-    # 現在のオークションを完了にする
-    @auction.update(status: 'completed')
+    # 現在のオークションをinactiveにする
+    @auction.update(status: 'inactive')
     
-    # 次の商品のオークションを作成または開始
+    # 次の商品のオークションを探す（既存のオークションを再利用）
     next_item = Item.where.not(id: @auction.item_id).first
     if next_item
-      next_auction = Auction.create!(
-        item: next_item,
-        current_bid: next_item.starting_price,
-        status: 'active'
-      )
+      # 既存のオークションを探す
+      next_auction = Auction.find_by(item: next_item)
       
-      # 次のオークションへの移行をブロードキャスト
+      if next_auction
+        # 既存のオークションをactiveに設定
+        next_auction.update!(status: 'active', current_bid: next_item.starting_price)
+      else
+        # 新しいオークションを作成
+        next_auction = Auction.create!(
+          item: next_item,
+          current_bid: next_item.starting_price,
+          status: 'active'
+        )
+      end
+      
+      # 他のオークションをinactiveに設定
+      Auction.where.not(id: [@auction.id, next_auction.id]).update_all(status: 'inactive')
+      
+      # 全ユーザーに新しいオークションへの移行を通知
       ActionCable.server.broadcast("auction_#{@auction.id}_channel", {
-        next_auction: true,
-        next_auction_id: next_auction.id,
-        message: "次の商品に移行しました。オークションID: #{next_auction.id}"
+        auction_switch: true,
+        new_auction_id: next_auction.id,
+        new_auction_url: participant_auction_path(next_auction),
+        new_monitor_url: monitor_auction_path(next_auction),
+        message: "次のオークション（#{next_item.name}）に移行しました。"
       })
       
-      redirect_to admin_path, notice: "次の商品（#{next_item.name}）のオークションを開始しました。"
+      respond_to do |format|
+        format.html { redirect_to admin_path, notice: "次のオークション（#{next_item.name}）を開始しました。全ユーザーが新しいオークションに移行します。" }
+        format.json { render json: { success: true, message: "次のオークション（#{next_item.name}）を開始しました。" } }
+      end
     else
-      redirect_to admin_path, alert: '次の商品がありません。'
+      respond_to do |format|
+        format.html { redirect_to admin_path, alert: '次の商品がありません。' }
+        format.json { render json: { success: false, error: '次の商品がありません。' } }
+      end
     end
   end
 
-  # オークション切り替え
+  # オークション切り替え（手動切り替え用）
   def switch
-    # すべてのユーザーに新しいオークションへの移行を通知
-    ActionCable.server.broadcast("auction_1_channel", {
-      auction_switch: true,
-      new_auction_id: @auction.id,
-      new_auction_url: participant_auction_path(@auction),
-      message: "オークション #{@auction.id} に切り替わりました。"
-    })
+    Rails.logger.info "=== Switch Action Called ==="
+    Rails.logger.info "Params: #{params.inspect}"
+    Rails.logger.info "Request format: #{request.format}"
+    Rails.logger.info "Content-Type: #{request.content_type}"
     
-    respond_to do |format|
-      format.json { render json: { success: true, message: "オークション #{@auction.id} に切り替えました。" } }
+    new_auction_id = params[:new_auction_id] || params[:auction][:new_auction_id]
+    Rails.logger.info "New auction ID: #{new_auction_id}"
+    
+    begin
+      new_auction = Auction.find(new_auction_id)
+      Rails.logger.info "New auction found: #{new_auction.id} - #{new_auction.item.name} (status: #{new_auction.status})"
+      
+      # hammeredのオークションはactiveにできない
+      if new_auction.hammered?
+        error_message = "ハンマープライス済みのオークション（ID: #{new_auction.id}）はアクティブにできません。"
+        Rails.logger.error error_message
+        
+        respond_to do |format|
+          format.html { redirect_to admin_path, alert: error_message }
+          format.json { render json: { success: false, error: error_message }, status: :unprocessable_entity }
+        end
+        return
+      end
+      
+      # 現在のオークションをinactiveにする（hammeredの場合はそのまま）
+      if @auction.active?
+        @auction.update(status: 'inactive')
+        Rails.logger.info "Current auction #{@auction.id} set to inactive"
+      else
+        Rails.logger.info "Current auction #{@auction.id} status remains #{@auction.status}"
+      end
+      
+      # 新しいオークションをアクティブにする（inactiveのもののみ）
+      if new_auction.inactive?
+        new_auction.update!(status: 'active')
+        Rails.logger.info "New auction #{new_auction.id} set to active"
+      else
+        error_message = "オークション（ID: #{new_auction.id}）は既に#{new_auction.status}状態です。"
+        Rails.logger.error error_message
+        
+        respond_to do |format|
+          format.html { redirect_to admin_path, alert: error_message }
+          format.json { render json: { success: false, error: error_message }, status: :unprocessable_entity }
+        end
+        return
+      end
+      
+      # 他のオークションをinactiveに設定（activeは1つだけ、hammeredはそのまま）
+      Auction.where.not(id: [@auction.id, new_auction.id]).where.not(status: 'hammered').update_all(status: 'inactive')
+      Rails.logger.info "Other auctions set to inactive (hammered auctions remain unchanged)"
+      
+      # 全ユーザーに新しいオークションへの移行を通知
+      # 全オークションチャンネルに通知を送信（確実に届くように）
+      Auction.all.each do |auction|
+        ActionCable.server.broadcast("auction_#{auction.id}_channel", {
+          auction_switch: true,
+          new_auction_id: new_auction.id,
+          new_auction_url: participant_auction_path(new_auction),
+          new_monitor_url: monitor_auction_path(new_auction),
+          message: "オークション #{new_auction.id}（#{new_auction.item.name}）に切り替わりました。"
+        })
+      end
+      
+      Rails.logger.info "ActionCable broadcast sent to all auction channels"
+      
+      respond_to do |format|
+        format.html { 
+          Rails.logger.info "Responding with HTML redirect"
+          redirect_to admin_path, notice: "オークション #{new_auction.id}（#{new_auction.item.name}）に切り替えました。" 
+        }
+        format.json { 
+          Rails.logger.info "Responding with JSON"
+          render json: { success: true, message: "オークション #{new_auction.id}（#{new_auction.item.name}）に切り替えました。" } 
+        }
+      end
+    rescue => e
+      Rails.logger.error "Error in switch action: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      
+      respond_to do |format|
+        format.html { redirect_to admin_path, alert: "エラーが発生しました: #{e.message}" }
+        format.json { render json: { success: false, error: e.message }, status: :unprocessable_entity }
+      end
     end
   end
 

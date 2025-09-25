@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "auction" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    
+    <script>
+      // ActionCableの初期化を完全に防ぐ
+      if (typeof window !== 'undefined') {
+        // ActionCable関連のオブジェクトを完全にクリア
+        window.Consumer = null;
+        window.ActionCable = null;
+        
+        // ActionCableの初期化を防ぐ
+        if (window.ActionCable) {
+          delete window.ActionCable;
+        }
+        if (window.Consumer) {
+          delete window.Consumer;
+        }
+        
+        // ActionCableの初期化を防ぐためのフラグを設定
+        window.DISABLE_ACTIONCABLE = true;
+        
+        // ActionCableの初期化を防ぐためのモック関数を設定
+        window.ActionCable = {
+          createConsumer: function() {
+            console.log('ActionCable.createConsumer is disabled in admin layout');
+            return null;
+          }
+        };
+        
+        // WebSocketの初期化も防ぐ
+        if (window.WebSocket) {
+          const originalWebSocket = window.WebSocket;
+          window.WebSocket = function() {
+            console.log('WebSocket is disabled in admin layout');
+            return null;
+          };
+        }
+        
+        // ActionCableの初期化を防ぐためのモックConsumerを設定
+        window.Consumer = {
+          subscriptions: {
+            create: function() {
+              console.log('Consumer.subscriptions.create is disabled in admin layout');
+              return null;
+            }
+          }
+        };
+        
+        // ActionCableの初期化を防ぐためのモックSubscriptionを設定
+        window.Subscription = function() {
+          console.log('Subscription is disabled in admin layout');
+          return null;
+        };
+        
+        // ActionCableの初期化を防ぐためのモックChannelを設定
+        window.Channel = function() {
+          console.log('Channel is disabled in admin layout');
+          return null;
+        };
+        
+        // ActionCableの初期化を防ぐためのモックConnectionを設定
+        window.Connection = function() {
+          console.log('Connection is disabled in admin layout');
+          return null;
+        };
+        
+        // ActionCableの初期化を防ぐためのモックCableを設定
+        window.Cable = function() {
+          console.log('Cable is disabled in admin layout');
+          return null;
+        };
+      }
+    </script>
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "application": "/assets/application.js",
+          "@hotwired/turbo-rails": "/assets/turbo.min.js",
+          "@hotwired/stimulus": "/assets/stimulus.min.js",
+          "@hotwired/stimulus-loading": "/assets/stimulus-loading.js",
+          "admin": "/assets/admin.js"
+        }
+      }
+    </script>
+    
+    <script type="module">
+      import "admin";
+    </script>
+  </head>
+
+  <body class="admin-layout">
+    <%= yield %>
+    
+    <script>
+      // 管理画面ではActionCableを完全に無効化
+      console.log('管理画面のため、ActionCableを完全に無効化します');
+      
+      // ActionCableの初期化を防ぐ
+      if (typeof window !== 'undefined') {
+        // ActionCable関連のオブジェクトを完全にクリア
+        window.Consumer = null;
+        window.ActionCable = null;
+        
+        // ActionCableの初期化を防ぐ
+        if (window.ActionCable) {
+          delete window.ActionCable;
+        }
+        if (window.Consumer) {
+          delete window.Consumer;
+        }
+        
+        // ActionCableの初期化を防ぐためのフラグを設定
+        window.DISABLE_ACTIONCABLE = true;
+        
+        // ActionCableの初期化を防ぐためのモック関数を設定
+        window.ActionCable = {
+          createConsumer: function() {
+            console.log('ActionCable.createConsumer is disabled in admin layout (body)');
+            return null;
+          }
+        };
+        
+        // WebSocketの初期化も防ぐ
+        if (window.WebSocket) {
+          const originalWebSocket = window.WebSocket;
+          window.WebSocket = function() {
+            console.log('WebSocket is disabled in admin layout');
+            return null;
+          };
+        }
+        
+        // ActionCableの初期化を防ぐためのモックConsumerを設定
+        window.Consumer = {
+          subscriptions: {
+            create: function() {
+              console.log('Consumer.subscriptions.create is disabled in admin layout (body)');
+              return null;
+            }
+          }
+        };
+        
+        // ActionCableの初期化を防ぐためのモックSubscriptionを設定
+        window.Subscription = function() {
+          console.log('Subscription is disabled in admin layout (body)');
+          return null;
+        };
+        
+        // ActionCableの初期化を防ぐためのモックChannelを設定
+        window.Channel = function() {
+          console.log('Channel is disabled in admin layout (body)');
+          return null;
+        };
+        
+        // ActionCableの初期化を防ぐためのモックConnectionを設定
+        window.Connection = function() {
+          console.log('Connection is disabled in admin layout (body)');
+          return null;
+        };
+        
+        // ActionCableの初期化を防ぐためのモックCableを設定
+        window.Cable = function() {
+          console.log('Cable is disabled in admin layout (body)');
+          return null;
+        };
+      }
+    </script>
+  </body>
+</html>

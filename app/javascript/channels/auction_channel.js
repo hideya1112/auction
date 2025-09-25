@@ -1,12 +1,19 @@
 import consumer from "channels/consumer"
 
-// 効果音はモニター画面専用のため削除
+// 管理画面では実行しない
+if (window.location.pathname.includes('/admin/') || window.DISABLE_ACTIONCABLE) {
+  console.log('管理画面のため、auction_channel.js をスキップします');
+  // 管理画面では何もしない
+} else {
+  console.log('ユーザー画面でauction_channel.js を実行します');
+  
+  // 効果音はモニター画面専用のため削除
 
-// ATM風キーパッドの処理
-let currentAmount = 0;
-let userBidAmounts = []; // ユーザーが既に入札した金額のリスト
-let auctionEnded = false; // オークション終了状態を管理
-let unreadNotificationCount = 0; // 未読通知数
+  // ATM風キーパッドの処理
+  let currentAmount = 0;
+  let userBidAmounts = []; // ユーザーが既に入札した金額のリスト
+  let auctionEnded = false; // オークション終了状態を管理
+  let unreadNotificationCount = 0; // 未読通知数
 
 // 最低入札価格を取得する関数（同じ金額でも入札可能）
 function getMinBid() {
@@ -300,8 +307,16 @@ document.addEventListener('DOMContentLoaded', setupKeypadListeners);
 // Turboのページ遷移時にもイベントリスナーを設定
 document.addEventListener('turbo:load', setupKeypadListeners);
 
-// オークションチャンネル
-const auctionSubscription = consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
+// オークションチャンネル（管理画面では接続しない）
+let auctionSubscription = null;
+if (!window.location.pathname.includes('/admin/') && !window.DISABLE_ACTIONCABLE) {
+  // 現在のオークションIDを取得（URLから）
+  const currentPath = window.location.pathname;
+  const auctionIdMatch = currentPath.match(/\/auctions\/(\d+)/);
+  const auctionId = auctionIdMatch ? auctionIdMatch[1] : 1; // デフォルトは1
+  
+  console.log('ActionCable接続開始 - Auction ID:', auctionId);
+  auctionSubscription = consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: auctionId }, {
   connected() {
     console.log('ActionCable接続成功');
   },
@@ -319,7 +334,7 @@ const auctionSubscription = consumer.subscriptions.create({ channel: "AuctionCha
     
     // 受け取ったデータを使ってUIを更新
     const currentBidElement = document.getElementById("current_bid");
-    if (currentBidElement) {
+    if (currentBidElement && data.current_bid !== undefined) {
       // 参加者画面では通貨記号付きで表示
       if (document.querySelector('.participant-view')) {
         currentBidElement.innerText = `JPY ${data.current_bid.toLocaleString()}`;
@@ -447,11 +462,19 @@ const auctionSubscription = consumer.subscriptions.create({ channel: "AuctionCha
     
     // オークション切り替えの処理
     if (data.auction_switch) {
-      if (confirm(data.message + '\n\n新しいオークションに移動しますか？')) {
-        window.location.href = data.new_auction_url;
-      }
+      console.log('オークション切り替え通知を受信:', data);
+      console.log('メッセージ:', data.message);
+      console.log('新しいオークションURL:', data.new_auction_url);
+      
+      // 自動的に新しいオークションページに移動
+      console.log('自動的に新しいオークションに移動します。');
+      window.location.href = data.new_auction_url;
     }
   }
-});
+  });
+} else {
+  console.log('管理画面のため、ActionCable接続をスキップします');
+}
 
 // ユーザーチャンネルは使用しない（オークションチャンネルで統合処理）
+}

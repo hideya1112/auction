@@ -10,18 +10,21 @@ class Auction < ApplicationRecord
   # after_update_commit :create_bid_log, if: :saved_change_to_current_bid?
   
   validates :current_bid, presence: true, numericality: { greater_than: 0 }
-  validates :status, presence: true, inclusion: { in: %w[active completed hammered] }
+  validates :status, presence: true, inclusion: { in: %w[active inactive hammered] }
+  
+  # hammeredのオークションはactiveに変更できない
+  validate :cannot_activate_hammered_auction, on: :update
   
   scope :active, -> { where(status: 'active') }
-  scope :completed, -> { where(status: 'completed') }
+  scope :inactive, -> { where(status: 'inactive') }
   scope :hammered, -> { where(status: 'hammered') }
   
   def active?
     status == 'active'
   end
   
-  def completed?
-    status == 'completed'
+  def inactive?
+    status == 'inactive'
   end
   
   def hammered?
@@ -64,6 +67,12 @@ class Auction < ApplicationRecord
   end
   
   private
+  
+  def cannot_activate_hammered_auction
+    if status_changed? && status == 'active' && status_was == 'hammered'
+      errors.add(:status, 'ハンマープライス済みのオークションはアクティブにできません')
+    end
+  end
   
   def broadcast_current_bid
     # idが存在することを確認

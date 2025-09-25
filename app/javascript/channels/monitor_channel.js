@@ -1,5 +1,12 @@
 import consumer from "channels/consumer"
 
+// 管理画面では実行しない
+if (window.location.pathname.includes('/admin/') || window.DISABLE_ACTIONCABLE) {
+  console.log('管理画面のため、monitor_channel.js をスキップします');
+  // 管理画面では何もしない
+} else {
+  console.log('モニター画面でmonitor_channel.js を実行します');
+
 // 効果音の初期化（モニター画面専用）
 let bidSound;
 try {
@@ -118,3 +125,4 @@ const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", 
     }
   }
 });
+}

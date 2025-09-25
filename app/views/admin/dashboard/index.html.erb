@@ -3,6 +3,22 @@
   <div class="dashboard-header">
     <h1>管理者ダッシュボード</h1>
     <div class="header-actions">
+      <div class="auction-selector">
+        <label for="auction-select">オークション選択:</label>
+        <select id="auction-select" onchange="switchAuction(this.value)">
+          <% Auction.includes(:item).order(:id).each do |auction| %>
+            <% if auction.inactive? %>
+              <option value="<%= auction.id %>" <%= 'selected' if auction.id == @current_auction&.id %>>
+                ID: <%= auction.id %> - <%= auction.item.name %> (<%= auction.status == 'inactive' ? '非アクティブ' : auction.status %>)
+              </option>
+            <% elsif auction.active? %>
+              <option value="<%= auction.id %>" <%= 'selected' if auction.id == @current_auction&.id %>>
+                ID: <%= auction.id %> - <%= auction.item.name %> (進行中)
+              </option>
+            <% end %>
+          <% end %>
+        </select>
+      </div>
       <%= link_to 'ログアウト', admin_logout_path, data: { turbo_method: :delete }, class: 'btn btn-danger' %>
     </div>
   </div>
@@ -18,7 +34,7 @@
           <p><strong>ステータス:</strong> 
             <span class="status-<%= @current_auction.status %>">
               <%= @current_auction.status == 'active' ? '進行中' : 
-                    @current_auction.status == 'completed' ? '完了' : 'ハンマープライス' %>
+                    @current_auction.status == 'inactive' ? '非アクティブ' : 'ハンマープライス' %>
             </span>
           </p>
           
@@ -34,8 +50,6 @@
             <% end %>
             <%= link_to '入札ロールバック', rollback_bid_admin_auction_path(@current_auction), 
                 data: { turbo_method: :patch }, class: 'btn btn-info' %>
-            <%= link_to '次の商品へ', next_item_admin_auction_path(@current_auction), 
-                data: { turbo_method: :patch }, class: 'btn btn-success' %>
           </div>
         </div>
       <% else %>
@@ -297,9 +311,108 @@
   color: #721c24;
   border: 1px solid #f5c6cb;
 }
+
+/* オークション選択ドロップダウン */
+.auction-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 20px;
+}
+
+.auction-selector label {
+  font-weight: bold;
+  color: #333;
+}
+
+.auction-selector select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.auction-selector select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
 </style>
 
 <script>
+// オークション切り替え関数
+function switchAuction(newAuctionId) {
+  if (confirm('オークション ' + newAuctionId + ' に切り替えますか？全ユーザーが新しいオークションに移行します。')) {
+    // 現在のオークションIDを取得（activeまたはhammered）
+    const currentAuctionId = '<%= @current_auction&.id %>';
+    
+    console.log('=== Debug Info ===');
+    console.log('Raw @current_auction&.id:', '<%= @current_auction&.id %>');
+    console.log('Raw @current_auction&.status:', '<%= @current_auction&.status %>');
+    console.log('Processed currentAuctionId:', currentAuctionId);
+    console.log('newAuctionId:', newAuctionId);
+    console.log('currentAuctionId type:', typeof currentAuctionId);
+    console.log('currentAuctionId length:', currentAuctionId.length);
+    
+    if (!currentAuctionId || currentAuctionId === '' || currentAuctionId === 'null') {
+      alert('現在のオークションがありません。');
+      return;
+    }
+    
+    // オークション切り替えのリクエストを送信
+    const url = `/admin/auctions/${currentAuctionId}/switch`;
+    console.log('Request URL:', url);
+    
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({
+        new_auction_id: newAuctionId
+      })
+    })
+    .then(response => {
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        return response.json();
+      } else {
+        // HTMLが返された場合の処理
+        return response.text().then(text => {
+          console.error('Expected JSON but got HTML:', text);
+          throw new Error('サーバーからJSONではなくHTMLが返されました');
+        });
+      }
+    })
+    .then(data => {
+      if (data.success) {
+        // 成功時はページをリロードして新しいオークションを表示
+        window.location.reload();
+      } else {
+        alert('エラー: ' + (data.error || 'オークションの切り替えに失敗しました'));
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('エラーが発生しました: ' + error.message);
+    });
+  } else {
+    // キャンセル時は選択を元に戻す
+    document.querySelector('#auction-select').value = '<%= @current_auction&.id %>';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const targetAuctionSelect = document.getElementById('target_auction');
   const switchBtn = document.getElementById('switch_auction_btn');
