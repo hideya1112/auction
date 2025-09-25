@@ -11,12 +11,16 @@ Rails.application.routes.draw do
   delete '/logout', to: 'users#logout', as: :user_logout
   get '/logout', to: 'users#logout', as: :user_logout_get
 
-  resources :auctions, only: [:show, :update]
-  
   # 参加者用画面
   get 'auctions/:id/participant', to: 'auctions#participant', as: :participant_auction
   # モニター用画面
   get 'auctions/:id/monitor', to: 'auctions#monitor', as: :monitor_auction
+  
+  # 不正なURLを明示的に404にする
+  get 'auctions/monitor', to: proc { |env| [404, {}, ['Not Found']] }
+  get 'auctions/participant', to: proc { |env| [404, {}, ['Not Found']] }
+  
+  resources :auctions, only: [:show, :update]
   
   # 管理者用画面
   namespace :admin do

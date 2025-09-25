@@ -12,7 +12,7 @@ class UsersController < ApplicationController
     if user
       session[:user_id] = user.id
       session[:user_name] = user.name
-      redirect_to participant_auction_path(Auction.active.first), notice: "#{user.name}さん、ようこそ！"
+      redirect_to participant_auction_path(Auction.active.first), notice: "#{user.name}様、ようこそ！"
     else
       flash.now[:alert] = 'ユーザーIDが見つかりません'
       render :login

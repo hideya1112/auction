@@ -4,7 +4,7 @@
   <div class="compact-header">
     <% if session[:user_name] %>
       <div class="user-info">
-        <span class="welcome"><%= session[:user_name] %>さん</span>
+        <span class="welcome"><%= session[:user_name] %>様</span>
         <%= link_to 'ログアウト', user_logout_get_path, class: 'logout-btn' %>
       </div>
     <% else %>
