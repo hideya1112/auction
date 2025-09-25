@@ -2,8 +2,16 @@ class UsersController < ApplicationController
   def login
     # 既にログインしている場合は参加者画面にリダイレクト
     if session[:user_id]
-      redirect_to participant_auction_path(Auction.active.first), notice: "既にログインしています"
+      auction = Auction.active.first || Auction.first
+      if auction
+        redirect_to participant_auction_path(auction), notice: "既にログインしています"
+      else
+        redirect_to user_login_path, alert: "オークションが存在しません"
+      end
     end
+    
+    # モニター画面用のオークションを取得
+    @auction = Auction.active.first || Auction.first
   end
   
   def authenticate
@@ -12,7 +20,12 @@ class UsersController < ApplicationController
     if user
       session[:user_id] = user.id
       session[:user_name] = user.name
-      redirect_to participant_auction_path(Auction.active.first), notice: "#{user.name}様、ようこそ！"
+      auction = Auction.active.first || Auction.first
+      if auction
+        redirect_to participant_auction_path(auction), notice: "#{user.name}様、ようこそ！"
+      else
+        redirect_to user_login_path, alert: "オークションが存在しません"
+      end
     else
       flash.now[:alert] = 'ユーザーIDが見つかりません'
       render :login

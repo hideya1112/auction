@@ -1,6 +1,9 @@
 class Auction < ApplicationRecord
+  include ApplicationHelper
+  
   belongs_to :item
   has_many :bid_logs, dependent: :destroy
+  has_many :notifications, dependent: :destroy
   
   after_update_commit :broadcast_current_bid
   # create_bid_log はコントローラーで手動実行するため無効化
@@ -43,6 +46,21 @@ class Auction < ApplicationRecord
     # 現在の入札金額と同じ金額で入札している人の数
     # 最新の入札金額（current_bid）と同じ金額で入札した人の数を計算
     bid_logs.where(bid_amount: current_bid).select(:user_id).distinct.count
+  end
+  
+  def create_notification_for_winner
+    # ハンマープライス時に落札者に通知を作成
+    if status == 'hammered'
+      winner = bid_logs.where(bid_amount: current_bid).order(bid_time: :desc).first&.user
+      if winner
+        notifications.create!(
+          user: winner,
+          message: "おめでとうございます！落札されました。落札価格: #{format_currency_with_symbol(current_bid)}",
+          notification_type: 'hammer_price',
+          read: false
+        )
+      end
+    end
   end
   
   private

@@ -5,6 +5,12 @@
     <% if session[:user_name] %>
       <div class="user-info">
         <span class="welcome"><%= session[:user_name] %>様</span>
+        <%= link_to notifications_path, class: 'notifications-link' do %>
+          <span class="notification-icon">🔔</span>
+          <% if @unread_notifications_count && @unread_notifications_count > 0 %>
+            <span class="notification-badge"><%= @unread_notifications_count %></span>
+          <% end %>
+        <% end %>
         <%= link_to 'ログアウト', user_logout_get_path, class: 'logout-btn' %>
       </div>
     <% else %>
@@ -25,6 +31,9 @@
     <div id="same_bid_info" class="same-bid-info" style="display: none;">
       <span class="same-bid-text">現在<span id="same_bid_count" class="same-bid-count">0</span>名が同じ金額で入札中</span>
     </div>
+    <div id="hammer_price_info" class="hammer-price-info" style="<%= @auction_ended ? 'display: block;' : 'display: none;' %>">
+      <span class="hammer-price-text">🔨 オークション終了</span>
+    </div>
   </div>
 
   <!-- 商品画像 -->
@@ -33,7 +42,7 @@
   </div>
 
   <% if session[:user_id] %>
-    <div class="bid-form atm-style" data-user-bid-amounts="<%= @user_bid_amounts.to_json %>">
+    <div class="bid-form atm-style <%= 'disabled' if @auction_ended %>" data-user-bid-amounts="<%= @user_bid_amounts.to_json %>" data-auction-ended="<%= @auction_ended %>" data-unread-count="<%= @unread_notifications_count %>" data-user-id="<%= session[:user_id] %>">
       <h3>入札フォーム</h3>
       
       <!-- 金額表示エリア -->
@@ -111,6 +120,35 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.notifications-link {
+  position: relative;
+  text-decoration: none;
+  color: #2c3e50;
+  font-size: 18px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.notifications-link:hover {
+  background-color: #f8f9fa;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #e74c3c;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
 }
 
 .welcome {
@@ -254,6 +292,23 @@
   font-size: 16px;
 }
 
+.hammer-price-info {
+  margin-top: 10px;
+  font-size: 16px;
+  text-align: center;
+  animation: hammerPulse 2s infinite;
+}
+
+.hammer-price-text {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+@keyframes hammerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 /* コンパクトなATM風スタイル */
 .atm-style {
   background: #ffffff;
@@ -264,6 +319,12 @@
   color: #2c3e50;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* 無効化状態のスタイル */
+.atm-style.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .atm-style h3 {

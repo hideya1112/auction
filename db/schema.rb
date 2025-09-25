@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_18_090330) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_25_093232) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,7 +27,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_18_090330) do
   create_table "bid_logs", force: :cascade do |t|
     t.integer "auction_id", null: false
     t.integer "user_id", null: false
-    t.integer "bid_amount", null: false
+    t.bigint "bid_amount", null: false
     t.datetime "bid_time", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -47,6 +47,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_18_090330) do
     t.index ["name"], name: "index_items_on_name"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "auction_id", null: false
+    t.text "message"
+    t.string "notification_type"
+    t.boolean "read"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["auction_id"], name: "index_notifications_on_auction_id"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "user_id", null: false
     t.string "name", null: false
@@ -55,4 +67,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_18_090330) do
     t.index ["name"], name: "index_users_on_name"
     t.index ["user_id"], name: "index_users_on_user_id", unique: true
   end
+
+  add_foreign_key "notifications", "auctions"
+  add_foreign_key "notifications", "users"
 end

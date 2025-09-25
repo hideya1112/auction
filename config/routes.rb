@@ -10,6 +10,11 @@ Rails.application.routes.draw do
   post '/login', to: 'users#authenticate', as: :user_authenticate
   delete '/logout', to: 'users#logout', as: :user_logout
   get '/logout', to: 'users#logout', as: :user_logout_get
+  
+  # 通知
+  resources :notifications, only: [:index, :show, :destroy]
+  post '/notifications/mark_all_read', to: 'notifications#mark_all_read', as: :mark_all_notifications_read
+  get '/notifications/unread_count', to: 'notifications#unread_count'
 
   # 参加者用画面
   get 'auctions/:id/participant', to: 'auctions#participant', as: :participant_auction
@@ -35,6 +40,7 @@ Rails.application.routes.draw do
         patch :hammer_price
         patch :rollback_bid
         patch :next_item
+        post :switch
       end
     end
     get '/bid_logs', to: 'bid_logs#index'

@@ -1,17 +1,12 @@
 import consumer from "channels/consumer"
 
-// 効果音の初期化
-let bidSound;
-try {
-  bidSound = new Audio('/assets/bid_sound.mp3');
-  bidSound.volume = 0.5; // 音量を50%に設定
-} catch (e) {
-  console.log('効果音の読み込みに失敗しました:', e);
-}
+// 効果音はモニター画面専用のため削除
 
 // ATM風キーパッドの処理
 let currentAmount = 0;
 let userBidAmounts = []; // ユーザーが既に入札した金額のリスト
+let auctionEnded = false; // オークション終了状態を管理
+let unreadNotificationCount = 0; // 未読通知数
 
 // 最低入札価格を取得する関数（同じ金額でも入札可能）
 function getMinBid() {
@@ -51,6 +46,110 @@ function updateAmountDisplay() {
 // グローバル関数として定義（ActionCableから呼び出し可能にする）
 window.updateAmountDisplay = updateAmountDisplay;
 
+// 通知バッジを更新する関数
+function updateNotificationBadge() {
+  // ローカルで通知数を増加
+  unreadNotificationCount += 1;
+  
+  const notificationBadge = document.querySelector('.notification-badge');
+  if (notificationBadge) {
+    if (unreadNotificationCount > 0) {
+      notificationBadge.textContent = unreadNotificationCount;
+      notificationBadge.style.display = 'inline';
+    } else {
+      notificationBadge.style.display = 'none';
+    }
+  }
+}
+
+// オークション状態をチェックする関数
+function checkAuctionStatus() {
+  const hammerPriceInfoElement = document.getElementById("hammer_price_info");
+  const bidForm = document.querySelector('.bid-form');
+  
+  // サーバーから渡されたオークション終了状態をチェック
+  if (bidForm && bidForm.dataset.auctionEnded === 'true') {
+    console.log('サーバーからオークション終了状態を検出');
+    disableBidForm();
+    return;
+  }
+  
+  // 既にオークション終了表示がされている場合はキーパッドを無効化
+  if (hammerPriceInfoElement && hammerPriceInfoElement.style.display === "block") {
+    console.log('オークション終了表示を検出');
+    disableBidForm();
+  }
+}
+
+// 入札フォームを無効化する関数
+function disableBidForm() {
+  auctionEnded = true; // オークション終了状態を設定
+  
+  const bidForm = document.querySelector('.bid-form');
+  if (bidForm) {
+    bidForm.style.opacity = "0.5";
+    bidForm.style.pointerEvents = "none";
+    
+    // フォーム送信を完全に無効化
+    bidForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('オークション終了のためフォーム送信をブロック');
+      return false;
+    }, true);
+  }
+  
+  // キーパッドの全ボタンを無効化
+  document.querySelectorAll('.keypad-btn').forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "not-allowed";
+  });
+  
+  // 入札ボタンを無効化
+  const submitBtn = document.getElementById('submit_btn');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = "0.5";
+    submitBtn.style.cursor = "not-allowed";
+    submitBtn.textContent = "オークション終了";
+  }
+  
+  // 金額表示をリセット
+  currentAmount = 0;
+  updateAmountDisplay();
+}
+
+// 入札フォームを有効化する関数
+function enableBidForm() {
+  auctionEnded = false; // オークション終了状態をリセット
+  
+  const bidForm = document.querySelector('.bid-form');
+  if (bidForm) {
+    bidForm.style.opacity = "1";
+    bidForm.style.pointerEvents = "auto";
+    
+    // フォーム送信のイベントリスナーを削除（無効化時に追加したものを削除）
+    // 注意: 完全に削除するのは難しいため、有効化時は既存のイベントリスナーに依存
+  }
+  
+  // キーパッドの全ボタンを有効化
+  document.querySelectorAll('.keypad-btn').forEach(btn => {
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  });
+  
+  // 入札ボタンを有効化
+  const submitBtn = document.getElementById('submit_btn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = "1";
+    submitBtn.style.cursor = "pointer";
+    submitBtn.textContent = "入札する";
+  }
+}
+
 // キーパッドのイベントリスナーを設定する関数
 function setupKeypadListeners() {
   // ユーザーの入札履歴を初期化
@@ -63,6 +162,10 @@ function setupKeypadListeners() {
       console.error('入札履歴の解析に失敗:', e);
       userBidAmounts = [];
     }
+    
+    // 初期通知数を設定
+    unreadNotificationCount = parseInt(bidForm.dataset.unreadCount || '0');
+    console.log('初期通知数:', unreadNotificationCount);
   }
   // 既存のイベントリスナーを削除（重複を防ぐため）
   document.querySelectorAll('.keypad-btn[data-number]').forEach(btn => {
@@ -76,6 +179,9 @@ function setupKeypadListeners() {
   // 数字キーの処理
   document.querySelectorAll('.keypad-btn[data-number]').forEach(btn => {
     btn.addEventListener('click', function() {
+      // オークション終了時は入力を無視
+      if (this.disabled) return;
+      
       const number = parseInt(this.dataset.number);
       const newAmount = currentAmount * 10 + number;
       
@@ -89,12 +195,18 @@ function setupKeypadListeners() {
   
   // クリアボタン
   document.getElementById('clear_btn')?.addEventListener('click', function() {
+    // オークション終了時は入力を無視
+    if (this.disabled) return;
+    
     currentAmount = 0;
     updateAmountDisplay();
   });
   
   // バックスペースボタン
   document.getElementById('backspace_btn')?.addEventListener('click', function() {
+    // オークション終了時は入力を無視
+    if (this.disabled) return;
+    
     currentAmount = Math.floor(currentAmount / 10);
     updateAmountDisplay();
   });
@@ -102,6 +214,12 @@ function setupKeypadListeners() {
   
   // 入札ボタン
   document.getElementById('submit_btn')?.addEventListener('click', function() {
+    // オークション終了時は入札を完全にブロック
+    if (this.disabled || auctionEnded) {
+      console.log('オークション終了のため入札できません');
+      return;
+    }
+    
     if (currentAmount >= getMinBid() && !isDuplicateBid(currentAmount)) { // 最低価格以上かつ重複でない場合のみ
       console.log('入札開始:', currentAmount, '最低価格:', getMinBid());
       
@@ -114,6 +232,13 @@ function setupKeypadListeners() {
         // フォームを送信
         const bidForm = document.getElementById('bid_form');
         if (bidForm) {
+          // 再度オークション状態をチェック（二重チェック）
+          const submitBtn = document.getElementById('submit_btn');
+          if (submitBtn && (submitBtn.disabled || auctionEnded)) {
+            console.log('オークション終了のため送信をキャンセル');
+            return;
+          }
+          
           const formData = new FormData(bidForm);
           console.log('送信データ:', Object.fromEntries(formData));
           
@@ -137,6 +262,10 @@ function setupKeypadListeners() {
               userBidAmounts.push(currentAmount);
               currentAmount = 0;
               updateAmountDisplay();
+              
+              // 通知バッジを更新
+              updateNotificationBadge();
+              
               console.log('入札が完了しました');
             } else {
               alert(data.error || '入札に失敗しました');
@@ -160,6 +289,9 @@ function setupKeypadListeners() {
   
   // 初期表示の更新
   updateAmountDisplay();
+  
+  // ページ読み込み時にオークション状態をチェック
+  checkAuctionStatus();
 }
 
 // ページ読み込み時とページ遷移時にイベントリスナーを設定
@@ -168,7 +300,8 @@ document.addEventListener('DOMContentLoaded', setupKeypadListeners);
 // Turboのページ遷移時にもイベントリスナーを設定
 document.addEventListener('turbo:load', setupKeypadListeners);
 
-const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
+// オークションチャンネル
+const auctionSubscription = consumer.subscriptions.create({ channel: "AuctionChannel", auction_id: 1 }, {
   connected() {
     console.log('ActionCable接続成功');
   },
@@ -222,6 +355,53 @@ const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", 
       }
     }
     
+    // オークション終了表示の更新
+    const hammerPriceInfoElement = document.getElementById("hammer_price_info");
+    if (hammerPriceInfoElement) {
+      if (data.auction_ended || data.status === 'hammered' || data.status === 'completed') {
+        hammerPriceInfoElement.style.display = "block";
+        
+        // 落札者かどうかを判定
+        const currentUserId = document.querySelector('[data-user-id]')?.dataset.userId;
+        const isWinner = data.winner_id && currentUserId && data.winner_id.toString() === currentUserId.toString();
+        
+        if (isWinner && data.hammer_price) {
+          // 落札者の場合
+          hammerPriceInfoElement.innerHTML = '<span class="hammer-price-text">🎉 おめでとうございます！落札されました！</span>';
+          hammerPriceInfoElement.style.animation = 'hammerPulse 1s infinite';
+          hammerPriceInfoElement.style.backgroundColor = '#d4edda';
+          hammerPriceInfoElement.style.border = '2px solid #28a745';
+          hammerPriceInfoElement.style.borderRadius = '8px';
+          hammerPriceInfoElement.style.padding = '15px';
+          hammerPriceInfoElement.style.margin = '10px 0';
+          
+          // 通知バッジを更新
+          updateNotificationBadge();
+          
+          // 特別なアラート表示
+          setTimeout(() => {
+            alert('🎉 ' + data.message + ' 🎉');
+          }, 500);
+        } else {
+          // 一般ユーザーの場合
+          hammerPriceInfoElement.innerHTML = '<span class="hammer-price-text">🔨 オークション終了</span>';
+          hammerPriceInfoElement.style.animation = '';
+          hammerPriceInfoElement.style.backgroundColor = '';
+          hammerPriceInfoElement.style.border = '';
+          hammerPriceInfoElement.style.borderRadius = '';
+          hammerPriceInfoElement.style.padding = '';
+          hammerPriceInfoElement.style.margin = '';
+        }
+        
+        // 入札フォーム全体を無効化
+        disableBidForm();
+      } else {
+        hammerPriceInfoElement.style.display = "none";
+        // 入札フォームを有効化
+        enableBidForm();
+      }
+    }
+    
     // 最低入札価格の更新
     const minBidElement = document.getElementById("min_bid");
     if (minBidElement) {
@@ -250,15 +430,8 @@ const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", 
       }
     }
     
-    // 効果音の再生（モニター画面でのみ）
-    if (bidSound && document.querySelector('.monitor-view')) {
-      try {
-        bidSound.currentTime = 0; // 音声を最初から再生
-        bidSound.play();
-      } catch (e) {
-        console.log('効果音の再生に失敗しました:', e);
-      }
-    }
+    // 効果音の再生はモニター画面専用のため削除
+    // 参加者画面では音を鳴らさない
     
     // タイムスタンプの更新（モニター画面用）
     const lastUpdateElement = document.getElementById("last-update");
@@ -271,5 +444,14 @@ const subscription = consumer.subscriptions.create({ channel: "AuctionChannel", 
       });
       lastUpdateElement.innerText = timeString;
     }
+    
+    // オークション切り替えの処理
+    if (data.auction_switch) {
+      if (confirm(data.message + '\n\n新しいオークションに移動しますか？')) {
+        window.location.href = data.new_auction_url;
+      }
+    }
   }
 });
+
+// ユーザーチャンネルは使用しない（オークションチャンネルで統合処理）

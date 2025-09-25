@@ -15,6 +15,9 @@
     <div id="same_bid_info" class="same-bid-info" style="display: none;">
       <span class="same-bid-text">現在<span id="same_bid_count" class="same-bid-count">0</span>名が同じ金額で入札中</span>
     </div>
+    <div id="hammer_price_info" class="hammer-price-info" style="display: none;">
+      <span class="hammer-price-text">🔨 ハンマープライス！入札終了</span>
+    </div>
   </div>
 
   <div class="item-display">
@@ -173,6 +176,24 @@
   font-size: 1.3em;
 }
 
+.hammer-price-info {
+  margin-top: 15px;
+  font-size: 1.4em;
+  text-align: center;
+  animation: hammerPulse 2s infinite;
+}
+
+.hammer-price-text {
+  color: #ff6b6b;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+@keyframes hammerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 /* レスポンシブデザイン */
 @media (max-width: 768px) {
   .item-display {
@@ -190,4 +211,8 @@
     font-size: 3em;
   }
 }
-</style> 
+</style>
+
+<script type="module">
+  import "channels/monitor_channel"
+</script> 

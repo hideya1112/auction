@@ -1,4 +1,6 @@
 module ApplicationHelper
+  include ActionView::Helpers::NumberHelper
+  
   def format_currency(amount)
     number_with_delimiter(amount)
   end

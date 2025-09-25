@@ -32,7 +32,11 @@
     
     <div class="login-footer">
       <p>オークションに参加するには、上記のユーザーIDのいずれかを入力してください。</p>
-      <p><%= link_to 'モニター画面を見る', monitor_auction_path(Auction.active.first), class: 'monitor-link' %></p>
+      <% if @auction %>
+        <p><%= link_to 'モニター画面を見る', monitor_auction_path(@auction), class: 'monitor-link' %></p>
+      <% else %>
+        <p><%= link_to 'モニター画面を見る', monitor_auction_path(1), class: 'monitor-link' %></p>
+      <% end %>
     </div>
   </div>
 </div>

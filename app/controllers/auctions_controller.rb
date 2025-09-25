@@ -1,4 +1,5 @@
 class AuctionsController < ApplicationController
+  include ApplicationHelper
     def show
       @auction = Auction.first
     end
@@ -14,6 +15,10 @@ class AuctionsController < ApplicationController
       @auction = Auction.find(params[:id])
       # 現在のユーザーが既に入札した金額のリストを取得
       @user_bid_amounts = @auction.bid_logs.where(user_id: session[:user_id]).pluck(:bid_amount)
+      # 未読通知数を取得
+      @unread_notifications_count = User.find(session[:user_id]).unread_notifications_count
+      # オークションの状態をビューに渡す
+      @auction_ended = !@auction.active?
     end
 
     # モニター用画面
@@ -29,6 +34,15 @@ class AuctionsController < ApplicationController
       end
       
       @auction = Auction.find(params[:id])
+      
+      # オークションが終了している場合は入札を拒否
+      unless @auction.active?
+        respond_to do |format|
+          format.html { redirect_to participant_auction_path(@auction), alert: 'このオークションは終了しています' }
+          format.json { render json: { success: false, error: 'このオークションは終了しています' } }
+        end
+        return
+      end
 
       if params[:auction][:current_bid].to_f >= @auction.current_bid
         # 現在ログインしているユーザーのIDを設定
@@ -49,6 +63,14 @@ class AuctionsController < ApplicationController
           user_id: session[:user_id],
           bid_amount: params[:auction][:current_bid].to_f,
           bid_time: Time.current
+        )
+        
+        # 入札成功通知を作成
+        @auction.notifications.create!(
+          user_id: session[:user_id],
+          message: "入札が完了しました。入札金額: #{format_currency_with_symbol(params[:auction][:current_bid].to_f)}",
+          notification_type: 'bid_success',
+          read: false
         )
         
         # 入札金額が現在の金額より大きい場合のみ更新
