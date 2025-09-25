@@ -345,15 +345,6 @@ if (!window.location.pathname.includes('/admin/') && !window.DISABLE_ACTIONCABLE
       console.log('現在価格更新:', data.current_bid);
     }
     
-    // 入札者数の更新
-    const bidderCountElement = document.getElementById("bidder_count");
-    if (bidderCountElement && data.bidder_count !== undefined) {
-      bidderCountElement.innerText = data.bidder_count;
-    } else if (bidderCountElement) {
-      // データがない場合は1を表示（最低1人は入札している）
-      bidderCountElement.innerText = "1";
-    }
-    
     // 複数入札者数の更新
     const sameBidCountElement = document.getElementById("same_bid_count");
     const sameBidInfoElement = document.getElementById("same_bid_info");

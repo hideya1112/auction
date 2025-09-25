@@ -45,6 +45,12 @@ class Admin::AuctionsController < Admin::ApplicationController
 
   # ハンマープライス処理
   def hammer_price
+    # 入札ログが存在するかチェック
+    if @auction.bid_logs.count == 0
+      redirect_to admin_dashboard_path, alert: "入札が一度もありません。ハンマープライスを実行できません。"
+      return
+    end
+    
     # 最高価格で入札している人数を確認
     highest_bidders_count = @auction.bid_logs.where(bid_amount: @auction.current_bid).select(:user_id).distinct.count
     

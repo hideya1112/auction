@@ -39,7 +39,11 @@
           </p>
           
           <div class="auction-actions">
-            <% if @current_auction.same_bid_count > 1 %>
+            <% if @current_auction.bid_logs.count == 0 %>
+              <div class="warning-message">
+                ⚠️ 入札が一度もありません。ハンマープライスは実行できません。
+              </div>
+            <% elsif @current_auction.same_bid_count > 1 %>
               <div class="warning-message">
                 ⚠️ 最高価格で<%= @current_auction.same_bid_count %>名が入札中です。ハンマープライスは実行できません。
               </div>
