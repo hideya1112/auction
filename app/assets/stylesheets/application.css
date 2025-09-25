@@ -13,6 +13,11 @@
     text-align: center;
  }
 
+ /* スマホでのダブルタップズームを無効化 */
+ * {
+   touch-action: manipulation;
+ }
+
  img {
    width: 100%;
    max-width: 500px;
