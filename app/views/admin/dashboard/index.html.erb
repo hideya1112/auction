@@ -7,19 +7,21 @@
         <label for="auction-select">オークション選択:</label>
         <select id="auction-select" onchange="switchAuction(this.value)">
           <% Auction.includes(:item).order(:id).each do |auction| %>
-            <% if auction.inactive? %>
-              <option value="<%= auction.id %>" <%= 'selected' if auction.id == @current_auction&.id %>>
-                ID: <%= auction.id %> - <%= auction.item.name %> (<%= auction.status == 'inactive' ? '非アクティブ' : auction.status %>)
-              </option>
-            <% elsif auction.active? %>
-              <option value="<%= auction.id %>" <%= 'selected' if auction.id == @current_auction&.id %>>
-                ID: <%= auction.id %> - <%= auction.item.name %> (進行中)
-              </option>
-            <% end %>
+            <option value="<%= auction.id %>" <%= 'selected' if auction.id == @current_auction&.id %>>
+              ID: <%= auction.id %> - <%= auction.item.name %> 
+              (<%= case auction.status
+                   when 'active' then '進行中'
+                   when 'inactive' then '非アクティブ'
+                   when 'completed' then 'ハンマープライス済み'
+                   else auction.status
+                   end %>)
+            </option>
           <% end %>
         </select>
       </div>
-      <%= link_to 'ログアウト', admin_logout_path, data: { turbo_method: :delete }, class: 'btn btn-danger' %>
+      <div class="logout-section">
+        <%= link_to 'ログアウト', admin_logout_path, data: { turbo_method: :delete }, class: 'btn btn-danger' %>
+      </div>
     </div>
   </div>
   
@@ -74,25 +76,6 @@
       </div>
     </div>
     
-    <div class="dashboard-section">
-      <h2>オークション切り替え</h2>
-      <div class="auction-switcher">
-        <p>ユーザーを別のオークションに移動させることができます。</p>
-        <div class="switcher-controls">
-          <select id="target_auction" class="form-control">
-            <option value="">オークションを選択してください</option>
-            <% Auction.all.each do |auction| %>
-              <option value="<%= auction.id %>">
-                オークション <%= auction.id %> - <%= auction.item&.name || '未設定' %> 
-                (<%= auction.status == 'active' ? '進行中' : auction.status == 'completed' ? '完了' : 'ハンマープライス' %>)
-              </option>
-            <% end %>
-          </select>
-          <button id="switch_auction_btn" class="btn btn-primary" disabled>切り替え実行</button>
-        </div>
-        <div id="switch_result" class="switch-result" style="display: none;"></div>
-      </div>
-    </div>
     
     <div class="dashboard-section">
       <h2>最近の入札履歴</h2>
@@ -125,6 +108,16 @@
   margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 2px solid #eee;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logout-section {
+  margin-left: 10px;
 }
 
 .dashboard-header h1 {
@@ -321,7 +314,6 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-right: 20px;
 }
 
 .auction-selector label {
