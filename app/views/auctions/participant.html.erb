@@ -6,12 +6,24 @@
       <div class="user-info">
         <span class="welcome"><%= session[:user_name] %>様</span>
         <%= link_to notifications_path, class: 'notifications-link' do %>
-          <span class="notification-icon">🔔</span>
-          <% if @unread_notifications_count && @unread_notifications_count > 0 %>
+          <%
+=begin%>
+ <span class="notification-icon">🔔</span> 
+<%
+=end%>
+          <%
+=begin%>
+ <% if @unread_notifications_count && @unread_notifications_count > 0 %>
             <span class="notification-badge"><%= @unread_notifications_count %></span>
-          <% end %>
+          <% end %> 
+<%
+=end%>
         <% end %>
-        <%= link_to 'ログアウト', user_logout_get_path, class: 'logout-btn' %>
+        <%
+=begin%>
+ <%= link_to 'ログアウト', user_logout_get_path, class: 'logout-btn' %> 
+<%
+=end%>
       </div>
     <% else %>
       <div class="login-required">
@@ -39,9 +51,7 @@
   </div>
 
   <% if session[:user_id] %>
-    <div class="bid-form atm-style <%= 'disabled' if @auction_ended %>" data-user-bid-amounts="<%= @user_bid_amounts.to_json %>" data-auction-ended="<%= @auction_ended %>" data-unread-count="<%= @unread_notifications_count %>" data-user-id="<%= session[:user_id] %>">
-      <h3>入札フォーム</h3>
-      
+    <div class="bid-form atm-style <%= 'disabled' if @auction_ended %>" data-user-bid-amounts="<%= @user_bid_amounts.to_json %>" data-auction-ended="<%= @auction_ended %>" data-unread-count="<%= @unread_notifications_count %>" data-user-id="<%= session[:user_id] %>">      
       <!-- 金額表示エリア -->
       <div class="amount-display">
         <div class="amount-label">入札金額</div>

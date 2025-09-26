@@ -12,7 +12,6 @@
   </div>
 
   <div class="bid-form">
-    <h3>入札フォーム</h3>
     <%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
       <div class="form-group">
         <label for="auction_current_bid">入札金額 (最低: <%= format_currency_with_symbol(@auction.min_bid_amount) %>)</label>
