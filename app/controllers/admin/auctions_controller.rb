@@ -69,6 +69,8 @@ class Admin::AuctionsController < Admin::ApplicationController
       # 全ユーザーにオークション終了を通知
       ActionCable.server.broadcast("auction_#{@auction.id}_channel", {
         current_bid: @auction.current_bid,
+        starting_price: @auction.item.starting_price,
+        bid_logs_count: @auction.bid_logs.count,
         status: @auction.status,
         bidder_count: @auction.current_bidders,
         same_bid_count: @auction.same_bid_count,

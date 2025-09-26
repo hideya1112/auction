@@ -3,7 +3,7 @@
   <h1>オークションシステム</h1>
   
   <div class="current-bid-display">
-    <h2>現在の入札金額: <%= format_currency_with_symbol(@auction.current_bid) %></h2>
+    <h2>現在の入札金額: <%= format_currency_with_symbol(@auction.display_price) %></h2>
     <p class="bidder-info">現在入札者: <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名</p>
   </div>
 
@@ -14,8 +14,8 @@
   <div class="bid-form">
     <%= form_with model: @auction, url: auction_path(@auction), method: :patch, remote: true do |form| %>
       <div class="form-group">
-        <label for="auction_current_bid">入札金額 (最低: <%= format_currency_with_symbol(@auction.min_bid_amount) %>)</label>
-        <%= form.number_field :current_bid, min: @auction.min_bid_amount, step: 1, class: "bid-input", id: "bid_input" %>
+        <label for="auction_current_bid">入札金額 (最低: <%= format_currency_with_symbol(@auction.display_min_bid_amount) %>)</label>
+        <%= form.number_field :current_bid, min: @auction.display_min_bid_amount, step: 1, class: "bid-input", id: "bid_input" %>
       </div>
       <%= form.submit "入札する", class: "bid-button" %>
     <% end %>

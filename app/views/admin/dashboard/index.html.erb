@@ -31,7 +31,7 @@
       <% if @current_auction %>
         <div class="current-auction-info">
           <p><strong>商品:</strong> <%= @current_auction.item&.name || '未設定' %></p>
-          <p><strong>現在価格:</strong> <%= format_currency_with_symbol(@current_auction.current_bid) %></p>
+          <p><strong>現在価格:</strong> <%= format_currency_with_symbol(@current_auction.display_price) %></p>
           <p><strong>入札者数:</strong> <%= @current_auction.bidder_count %>名</p>
           <p><strong>ステータス:</strong> 
             <span class="status-<%= @current_auction.status %>">

@@ -35,6 +35,16 @@ class Auction < ApplicationRecord
     current_bid + 1
   end
   
+  # 表示用の現在価格（入札がない場合は初値を表示）
+  def display_price
+    bid_logs.count > 0 ? current_bid : item.starting_price
+  end
+  
+  # 表示用の最低入札価格（入札がない場合は初値、ある場合は現在価格+1）
+  def display_min_bid_amount
+    bid_logs.count > 0 ? current_bid : item.starting_price
+  end
+  
   def bidder_count
     # 現在の入札金額に到達するまでの入札に参加したユーザー数
     bid_logs.where('bid_amount <= ?', current_bid).select(:user_id).distinct.count

@@ -35,7 +35,7 @@
   <!-- 現在価格表示 -->
   <div class="current-bid-display">
     <div class="bid-amount">
-      <span id="current_bid"><%= format_currency_with_symbol(@auction.current_bid) %></span>
+      <span id="current_bid"><%= format_currency_with_symbol(@auction.display_price) %></span>
     </div>
     <div id="same_bid_info" class="same-bid-info" style="display: none;">
       <span class="same-bid-text">現在<span id="same_bid_count" class="same-bid-count">0</span>名が同じ金額で入札中</span>

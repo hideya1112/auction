@@ -335,14 +335,17 @@ if (!window.location.pathname.includes('/admin/') && !window.DISABLE_ACTIONCABLE
     // 受け取ったデータを使ってUIを更新
     const currentBidElement = document.getElementById("current_bid");
     if (currentBidElement && data.current_bid !== undefined) {
+      // 表示価格を計算（入札がない場合は初値を表示）
+      const displayPrice = data.bid_logs_count > 0 ? data.current_bid : data.starting_price;
+      
       // 参加者画面では通貨記号付きで表示
       if (document.querySelector('.participant-view')) {
-        currentBidElement.innerText = `JPY ${data.current_bid.toLocaleString()}`;
+        currentBidElement.innerText = `JPY ${displayPrice.toLocaleString()}`;
       } else {
         // モニター画面では数値のみ
-        currentBidElement.innerText = data.current_bid.toLocaleString();
+        currentBidElement.innerText = displayPrice.toLocaleString();
       }
-      console.log('現在価格更新:', data.current_bid);
+      console.log('現在価格更新:', displayPrice, '(入札数:', data.bid_logs_count, ')');
     }
     
     // 複数入札者数の更新
@@ -411,14 +414,14 @@ if (!window.location.pathname.includes('/admin/') && !window.DISABLE_ACTIONCABLE
     // 最低入札価格の更新
     const minBidElement = document.getElementById("min_bid");
     if (minBidElement) {
-      const newMinBid = parseInt(data.current_bid); // 同じ金額でも入札可能
+      const newMinBid = data.bid_logs_count > 0 ? parseInt(data.current_bid) : parseInt(data.starting_price);
       minBidElement.innerText = `JPY ${newMinBid.toLocaleString()}`;
     }
     
     // 入力フィールドのmin属性の更新
     const bidInputElement = document.getElementById("bid_input");
     if (bidInputElement) {
-      const newMinBid = parseInt(data.current_bid); // 同じ金額でも入札可能
+      const newMinBid = data.bid_logs_count > 0 ? parseInt(data.current_bid) : parseInt(data.starting_price);
       bidInputElement.min = newMinBid;
       
       // ATM風キーパッドの最低入札価格も更新

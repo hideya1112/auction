@@ -8,7 +8,7 @@
   <div class="current-bid-display">
     <div class="bid-amount">
       <span class="currency">JPY</span>
-      <span id="current_bid" class="amount"><%= format_currency(@auction.current_bid) %></span>
+      <span id="current_bid" class="amount"><%= format_currency(@auction.display_price) %></span>
     </div>
     <div class="bid-label">現在の入札金額</div>
     <div class="bidder-info">現在入札者: <span id="bidder_count" class="bidder-count"><%= @auction.current_bidders %></span>名</div>
