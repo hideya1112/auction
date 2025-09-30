@@ -45,9 +45,5 @@ ENTRYPOINT ["docker-entrypoint"]
 # from the outside.
 EXPOSE 3000
 
-# Create a startup script
-RUN echo '#!/bin/bash\nset -e\n\n# Remove a potentially pre-existing server.pid for Rails.\nrm -f tmp/pids/server.pid\n\n# Prepare database\nbundle exec rails db:prepare\n\n# Then exec the container'\''s main process (what'\''s set as CMD in the Dockerfile).\nexec "$@"' > /usr/local/bin/rails-startup
-RUN chmod +x /usr/local/bin/rails-startup
-
 # The default command that gets ran will be to start the Rails server.
-CMD ["/usr/local/bin/rails-startup", "bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
