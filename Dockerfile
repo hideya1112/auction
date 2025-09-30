@@ -41,9 +41,9 @@ RUN echo '#!/bin/bash\nset -e\n\n# Remove a potentially pre-existing server.pid 
 RUN chmod +x /usr/local/bin/docker-entrypoint
 ENTRYPOINT ["docker-entrypoint"]
 
-# Expose port 8080 to the Docker host, so we can access it
+# Expose port 3000 to the Docker host, so we can access it
 # from the outside.
-EXPOSE 8080
+EXPOSE 3000
 
 # The default command that gets ran will be to start the Rails server.
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "8080"]
+CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
