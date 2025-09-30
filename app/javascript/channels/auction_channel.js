@@ -338,14 +338,19 @@ if (!window.location.pathname.includes('/admin/') && !window.DISABLE_ACTIONCABLE
       // 表示価格を計算（入札がない場合は初値を表示）
       const displayPrice = data.bid_logs_count > 0 ? data.current_bid : data.starting_price;
       
-      // 参加者画面では通貨記号付きで表示
-      if (document.querySelector('.participant-view')) {
-        currentBidElement.innerText = `JPY ${displayPrice.toLocaleString()}`;
+      // displayPriceが有効な数値かチェック
+      if (displayPrice !== undefined && displayPrice !== null && !isNaN(displayPrice)) {
+        // 参加者画面では通貨記号付きで表示
+        if (document.querySelector('.participant-view')) {
+          currentBidElement.innerText = `JPY ${displayPrice.toLocaleString()}`;
+        } else {
+          // モニター画面では数値のみ
+          currentBidElement.innerText = displayPrice.toLocaleString();
+        }
+        console.log('現在価格更新:', displayPrice, '(入札数:', data.bid_logs_count, ')');
       } else {
-        // モニター画面では数値のみ
-        currentBidElement.innerText = displayPrice.toLocaleString();
+        console.warn('無効な価格データ:', displayPrice, 'data:', data);
       }
-      console.log('現在価格更新:', displayPrice, '(入札数:', data.bid_logs_count, ')');
     }
     
     // 複数入札者数の更新
@@ -415,7 +420,11 @@ if (!window.location.pathname.includes('/admin/') && !window.DISABLE_ACTIONCABLE
     const minBidElement = document.getElementById("min_bid");
     if (minBidElement) {
       const newMinBid = data.bid_logs_count > 0 ? parseInt(data.current_bid) : parseInt(data.starting_price);
-      minBidElement.innerText = `JPY ${newMinBid.toLocaleString()}`;
+      if (!isNaN(newMinBid)) {
+        minBidElement.innerText = `JPY ${newMinBid.toLocaleString()}`;
+      } else {
+        console.warn('無効な最低入札価格:', newMinBid, 'data:', data);
+      }
     }
     
     // 入力フィールドのmin属性の更新

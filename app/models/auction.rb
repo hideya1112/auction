@@ -89,6 +89,8 @@ class Auction < ApplicationRecord
     if id.present?
       ActionCable.server.broadcast("auction_#{id}_channel", { 
         current_bid: current_bid,
+        starting_price: item.starting_price,
+        bid_logs_count: bid_logs.count,
         status: status,
         bidder_count: current_bidders,
         same_bid_count: same_bid_count
