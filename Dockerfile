@@ -46,4 +46,4 @@ ENTRYPOINT ["docker-entrypoint"]
 EXPOSE 3000
 
 # The default command that gets ran will be to start the Rails server.
-CMD ["sh", "-c", "bundle exec rails db:create db:migrate && bundle exec rails server -b 0.0.0.0"]
+CMD ["sh", "-c", "bundle exec rails db:migrate && bundle exec rails server -b 0.0.0.0"]
