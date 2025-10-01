@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
+  
+  # Railway用のヘルスチェックパス
+  get "health" => "rails/health#show", as: :health_check
 
   # ユーザー認証
   get '/login', to: 'users#login', as: :user_login
